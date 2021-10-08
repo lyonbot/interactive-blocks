@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "module": "amd",
+    "moduleResolution": "node",
+    "target": "ES2019",
+    "strict": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "useDefineForClassFields": true,
+    "jsx": "react",
+    "baseUrl": ".",
+    "noEmit": true,
+    "paths": {
+      "copyable-blocks": ["../src/index.ts"]
+    }
+  },
+  "references": [{ "path": "../tsconfig.json" }],
+  "include": ["./**/*"]
+}

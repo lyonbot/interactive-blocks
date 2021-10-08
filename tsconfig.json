@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES2019",
+    "strict": true,
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "useDefineForClassFields": true,
+    "composite": true
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"]
+}

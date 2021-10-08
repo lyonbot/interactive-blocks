@@ -1,0 +1,75 @@
+.myBlock {
+  position: relative;
+  padding: 8px;
+  background: linear-gradient(0deg, #ccc, #eee);
+  border-radius: 8px;
+  margin: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.myBlock + .myBlock {
+  margin-top: 16px;
+}
+
+.myBlock.isActive {
+  /* active but not focused */
+  box-shadow: 0 0 1px 1px #99c;
+}
+
+.demoPage.hasFocus .myBlock.isActive {
+  /* active + focused */
+  box-shadow: 0 0 1px 2px blue;
+}
+
+.myBlock-selectIndex {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: blue;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 8px 0 8px 0;
+}
+
+/* ------------------------------- */
+
+.mySlot {
+  padding: 8px;
+  background: linear-gradient(0deg, #eee, #ccc);
+  border-radius: 8px;
+}
+
+.mySlot.isActive {
+  /* active but not focused */
+  background: linear-gradient(0deg, #eef, #ccf);
+  box-shadow: 0 0 10px 2px #99c inset;
+}
+
+.demoPage.hasFocus .mySlot.isActive {
+  /* active + focused */
+  box-shadow: 0 0 10px 2px #99c inset, 0 0 1px 2px blue inset;
+}
+
+.mySlot-emptyPlaceholder {
+  color: rgba(0, 0, 0, 0.4);
+  text-align: center;
+}
+
+/* ------------------------------- */
+
+.blockNameInput {
+  border: 1px dashed #ccc;
+  outline: 0;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: inherit;
+  margin-bottom: 6px;
+}
+
+.blockNameInput:hover,
+.blockNameInput:focus {
+  border: 1px solid #999;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* ------------------------------- */

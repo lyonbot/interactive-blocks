@@ -1,0 +1,47 @@
+{
+  "name": "copyable-blocks",
+  "version": "1.0.0",
+  "description": "Select, copy and paste your elements as if a large text input",
+  "source": "./src/index.ts",
+  "main": "./dist/index.js",
+  "unpkg": "./dist/index.umd.js",
+  "module": "./dist/index.module.js",
+  "exports": "./dist/index.modern.js",
+  "types": "./dist/index.d.ts",
+  "amdName": "CopyableBlocks",
+  "scripts": {
+    "build": "microbundle",
+    "watch": "microbundle watch",
+    "dev": "node example/dev-server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyonbot/copyable-blocks.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "keywords": [],
+  "author": "lyonbot",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/lyonbot/copyable-blocks/issues"
+  },
+  "homepage": "https://github.com/lyonbot/copyable-blocks#readme",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.31.2",
+    "@typescript-eslint/parser": "^4.31.2",
+    "chokidar": "^3.5.2",
+    "eslint": "^7.32.0",
+    "express": "^4.17.1",
+    "microbundle": "^0.13.3",
+    "preact": "^10.5.14",
+    "reload": "^3.2.0",
+    "requirejs": "^2.3.6",
+    "typescript": "^4.4.3"
+  },
+  "dependencies": {
+    "lodash.debounce": "^4.0.8",
+    "tiny-typed-emitter": "^2.1.0"
+  }
+}
