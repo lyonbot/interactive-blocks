@@ -1,8 +1,10 @@
 # copyable-blocks
 
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/lyonbot/copyable-blocks/main) ![npm](https://img.shields.io/npm/v/copyable-blocks)
+
 Make blocks and slots selectable, copyable with cursor and keyboard. Multiple selection is supported.
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/lyonbot/copyable-blocks/main) ![npm](https://img.shields.io/npm/v/copyable-blocks) [![](https://img.shields.io/badge/%E2%96%BA-Try%20the%20Demo-29c)](https://lyonbot.github.io/copyable-blocks) [![](https://img.shields.io/badge/%E2%96%BA-View%20on%20GitHub-29c)](https://github.com/lyonbot/copyable-blocks)
+[ [▶️ Try the Demo](https://lyonbot.github.io/copyable-blocks/) ] [ [📁 View on GitHub](https://github.com/lyonbot/copyable-blocks) ]
 
 ## Guide
 
