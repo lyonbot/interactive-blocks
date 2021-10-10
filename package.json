@@ -11,8 +11,8 @@
   "amdName": "CopyableBlocks",
   "scripts": {
     "clean": "rimraf dist types example/dist",
-    "prepack": "npm run clean && npm run build:lib",
-    "build": "run-p build:*",
+    "prepack": "run-s clean build:lib",
+    "build": "run-s build:lib build:example",
     "dev": "run-p dev:*",
     "build:lib": "microbundle",
     "dev:lib": "microbundle watch",
