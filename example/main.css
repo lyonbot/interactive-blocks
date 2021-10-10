@@ -108,3 +108,21 @@
   resize: vertical;
   height: 40vh;
 }
+
+body {
+  overflow-x: hidden;
+}
+
+.demoPage-forkMe {
+  position: absolute;
+  right: 0;
+  top: -30px;
+  transform: translateX(30%) rotate(45deg);
+  background: linear-gradient(0deg, #900, #933);
+  color: white;
+  transform-origin: 0 0;
+  padding: 10px 50px;
+  margin: 0 -30px;
+  text-decoration: none;
+  font-size: 14px;
+}

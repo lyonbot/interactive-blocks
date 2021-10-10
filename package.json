@@ -1,7 +1,10 @@
 {
   "name": "copyable-blocks",
   "version": "1.0.0",
-  "description": "Select, copy and paste your elements as if a large text input",
+  "description": "make blocks and slots selectable, copyable with cursor and keyboard. Multiple selection is supported.",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "source": "./src/index.ts",
   "main": "./dist/index.js",
   "unpkg": "./dist/index.umd.js",

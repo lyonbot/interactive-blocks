@@ -4,6 +4,7 @@ import * as path from "path";
 export default {
   mode: "development",
   root: __dirname,
+  base: "./",
   resolve: {
     alias: {
       "events": "eventemitter3",

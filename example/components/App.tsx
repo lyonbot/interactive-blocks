@@ -24,7 +24,7 @@ export const App = function () {
   }, []);
 
   return <BlockContextProvider value={blockContext}>
-    <h2>CopyableBlocks</h2>
+    {Header}
     <div className={classnames("demoPage", hasFocus && "hasFocus")}>
       <div className="demoPage-blockArea">
         <MySlot>
@@ -38,3 +38,12 @@ export const App = function () {
     </div>
   </BlockContextProvider>;
 };
+
+const githubUrl = "https://github.com/lyonbot/copyable-blocks";
+
+const Header = <>
+  <h2>CopyableBlocks</h2>
+  <p>Just proving the abilities with shabby Slot and Block components here.</p>
+  <p>Learn how to integrate with your own components? <a href={githubUrl} target="_blank">Read the guide on GitHub</a></p>
+  <a className="demoPage-forkMe" href={githubUrl} target="_blank">Fork me on GitHub</a>
+</>;
