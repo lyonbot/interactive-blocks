@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "rootDir": "src",
     "module": "commonjs",
     "moduleResolution": "node",
     "target": "ES2019",
@@ -7,7 +8,8 @@
     "strictNullChecks": true,
     "noUncheckedIndexedAccess": true,
     "useDefineForClassFields": true,
-    "composite": true
+    "composite": true,
+    "declarationDir": "types"
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules"]

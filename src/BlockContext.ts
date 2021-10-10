@@ -53,6 +53,8 @@ const defaultOptions: Required<BlockContextOptions> = {
 
 export class BlockContext extends TypedEmitter<CBEvents> {
   hiddenInput: HTMLTextAreaElement;
+  private _lastActiveElement: HTMLElement | Element | null = null;
+
   hasFocus = false;
   options: Required<BlockContextOptions>;
 
@@ -146,6 +148,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     }, false);
     hiddenInput.addEventListener("blur", () => {
       this.hasFocus = false;
+      this._lastActiveElement = null;
       this.emit("blur", this);
     }, false);
     hiddenInput.addEventListener("keydown", (ev) => {
@@ -171,6 +174,18 @@ export class BlockContext extends TypedEmitter<CBEvents> {
         case "Delete":
           if (opts.handleDeleteKey) this.deleteActiveBlocks();
           break;
+
+        case "Tab":
+          {
+            const el = this._lastActiveElement;
+            if (el && "focus" in el) {
+              const nextEl = (el.tabIndex === -1) && el.querySelector("[tabIndex], button, textarea, input, select, a, [contentEditable]") as HTMLElement;
+              if (!nextEl || !("focus" in nextEl)) el.focus();
+              else nextEl.focus();
+            }
+            ev.preventDefault();
+          }
+          break;
       }
     }, false);
   }
@@ -179,6 +194,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     if (document.activeElement === this.hiddenInput) return;
     // if (this.activeBlocks.size == 0 && !this.activeSlot) return;
 
+    this._lastActiveElement = document.activeElement;
     this.hiddenInput.focus();
   }
 

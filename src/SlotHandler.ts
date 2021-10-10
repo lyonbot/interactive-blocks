@@ -1,4 +1,4 @@
-import { CBCutAction, CBPasteAction } from ".";
+import type { CBCutAction, CBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
 

@@ -1,4 +1,5 @@
-import type { BlockHandler, SlotHandler } from ".";
+import type { BlockHandler } from "./BlockHandler";
+import type { SlotHandler } from "./SlotHandler";
 import type { BlockContext } from "./BlockContext";
 
 export interface CBClipboardData {

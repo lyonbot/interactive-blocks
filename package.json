@@ -7,9 +7,11 @@
   "unpkg": "./dist/index.umd.js",
   "module": "./dist/index.module.js",
   "exports": "./dist/index.modern.js",
-  "types": "./dist/index.d.ts",
+  "types": "./index.d.ts",
   "amdName": "CopyableBlocks",
   "scripts": {
+    "clean": "rimraf dist types",
+    "prepack": "npm run clean && npm run build",
     "build": "microbundle",
     "watch": "microbundle watch",
     "dev": "node example/dev-server"
@@ -19,7 +21,9 @@
     "url": "git+https://github.com/lyonbot/copyable-blocks.git"
   },
   "files": [
-    "dist"
+    "dist",
+    "types",
+    "/index.d.ts"
   ],
   "keywords": [],
   "author": "lyonbot",
@@ -39,6 +43,7 @@
     "preact": "^10.5.14",
     "reload": "^3.2.0",
     "requirejs": "^2.3.6",
+    "rimraf": "^3.0.2",
     "typescript": "^4.4.3"
   },
   "dependencies": {
