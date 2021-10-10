@@ -1,28 +1,25 @@
 import * as React from "preact";
 import { memo } from "preact/compat";
-import { useCallback, useImperativeHandle, useMemo, useRef, useState } from "preact/hooks";
-import { useBlockContext } from "../hooks/useBlockContext";
-import { MySlot } from "./MySlot";
+import { useCallback, useImperativeHandle, useMemo, useRef } from "preact/hooks";
+import { useBlockContext, useOwnerSlot, useUnmount, useForceUpdate } from "../hooks";
 import { MyDataItem, useStore } from "../store";
-import { useOwnerSlot } from "../hooks/useOwnerSlot";
-import { useUnmount } from "../hooks/useUnmount";
-import { BlockHandler } from "copyable-blocks";
 import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames } from "../utils";
+import { MySlot } from "./MySlot";
+
+import type { BlockHandler } from "copyable-blocks";
 
 export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDataItem }) {
   const { index, item } = props;
+  const forceUpdate = useForceUpdate();
   const propsCache = useRef<{ index: number; item: MyDataItem }>();
   useImperativeHandle(propsCache, () => ({ index, item }), [index, item]);
-
-  const [activeNumber, setActiveNumber] = useState<false | number>(false);
-  const isActive = activeNumber !== false;
 
   const blockContext = useBlockContext();
   const ownerSlot = useOwnerSlot();
   const blockHandler = useMemo(() => blockContext.createBlock({
     data: () => myDataItemToClipboardData(propsCache.current!.item),
     index: () => propsCache.current!.index,
-    onActiveStatusChange: (block) => setActiveNumber(block.activeNumber),
+    onActiveStatusChange: () => forceUpdate(),
   }, ownerSlot), []);
   useUnmount(() => blockHandler.dispose());
 
@@ -31,12 +28,14 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
     if (document.activeElement === ev.currentTarget) blockHandler.ctx.focus();
   }, []);
 
+  const { activeNumber, isActive } = blockHandler;
+
   return <div
     className={classnames("myBlock", isActive && "isActive")}
     tabIndex={-1}
     onPointerUp={onPointerUp}
   >
-    {isActive && <div className="myBlock-selectIndex">{activeNumber + 1}</div>}
+    {isActive && <div className="myBlock-selectIndex">{activeNumber as number + 1}</div>}
 
     <MyBlockName name={item.name} blockHandler={blockHandler} />
 

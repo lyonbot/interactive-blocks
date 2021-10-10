@@ -17,9 +17,13 @@ interface StoreAction {
   rename?: { name: string };
   remove?: { indexes: number[] };
   insert?: { index: number; items: MyDataItem[] };
+
+  __demo_wholeReplace__?: MyDataItem[];
 }
 
 const reducer = (state: MyDataItem[], action: StoreAction): MyDataItem[] => {
+  if ("__demo_wholeReplace__" in action) return action.__demo_wholeReplace__!;
+
   const newState = [...state];
 
   let slot = newState; // from root

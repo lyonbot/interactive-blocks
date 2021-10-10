@@ -10,11 +10,14 @@
   "types": "./index.d.ts",
   "amdName": "CopyableBlocks",
   "scripts": {
-    "clean": "rimraf dist types",
-    "prepack": "npm run clean && npm run build",
-    "build": "microbundle",
-    "watch": "microbundle watch",
-    "dev": "node example/dev-server"
+    "clean": "rimraf dist types example/dist",
+    "prepack": "npm run clean && npm run build:lib",
+    "build": "build:*",
+    "dev": "run-p dev:*",
+    "build:lib": "microbundle",
+    "dev:lib": "microbundle watch",
+    "build:example": "vite -c example/vite.config.js build",
+    "dev:example": "vite -c example/vite.config.js --open"
   },
   "repository": {
     "type": "git",
@@ -35,16 +38,15 @@
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.31.2",
     "@typescript-eslint/parser": "^4.31.2",
-    "chokidar": "^3.5.2",
     "eslint": "^7.32.0",
     "eventemitter3": "^4.0.7",
-    "express": "^4.17.1",
     "microbundle": "^0.13.3",
+    "npm-run-all": "^4.1.5",
     "preact": "^10.5.14",
-    "reload": "^3.2.0",
     "requirejs": "^2.3.6",
     "rimraf": "^3.0.2",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "vite": "^2.6.5"
   },
   "dependencies": {
     "lodash.debounce": "^4.0.8",

@@ -73,3 +73,38 @@
 }
 
 /* ------------------------------- */
+
+.demoPage {
+  display: flex;
+  gap: 12px;
+  line-height: 1.5;
+}
+
+.demoPage-blockArea {
+  flex: 1;
+}
+
+.demoPage-introductionArea {
+  flex: 0 0 400px;
+  overflow-x: hidden;
+}
+
+.demoPage-introductionArea kbd {
+  background: #eee;
+  border: 1px solid #999;
+  border-bottom-width: 2px;
+  padding: 2px 4px;
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+.demoPage-store {
+  border: 1px solid #999;
+  font-size: 12px;
+  background: #eee;
+  overflow: auto;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  height: 40vh;
+}

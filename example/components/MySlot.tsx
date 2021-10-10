@@ -1,17 +1,18 @@
+
 import * as React from "preact";
 import { memo } from "preact/compat";
-import { useCallback, useMemo, useState } from "preact/hooks";
-import { BlockHandler } from "copyable-blocks";
+import { useCallback, useMemo } from "preact/hooks";
+import { useBlockContext, useUnmount, useForceUpdate } from "../hooks";
 import { useStore } from "../store";
-import { useBlockContext } from "../hooks/useBlockContext";
 import { OwnerSlotProvider } from "../hooks/useOwnerSlot";
-import { useUnmount } from "../hooks/useUnmount";
 import { classnames, clipboardDataToMyDataItem, getPathFromOwnerBlock } from "../utils";
+
+import type { BlockHandler } from "copyable-blocks";
 
 export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; children: React.ComponentChildren }) {
   const ownerBlock = props.ownerBlock || null;
   const [, dispatch] = useStore();
-  const [isActive, setActive] = useState<boolean>(false);
+  const forceUpdate = useForceUpdate();
 
   const blockContext = useBlockContext();
   const slotHandler = useMemo(() => blockContext.createSlot({
@@ -25,8 +26,7 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
         path: getPathFromOwnerBlock(ownerBlock),
         insert: { index: action.index, items: action.data.blocksData.map(clipboardDataToMyDataItem) },
       }),
-    onActiveStatusChange: (el) =>
-      setActive(el.isActive),
+    onActiveStatusChange: () => forceUpdate(),
   }, ownerBlock), []);
   useUnmount(() => slotHandler.dispose());
 
@@ -34,6 +34,8 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
     slotHandler.handlePointerUp();
     if (document.activeElement === ev.currentTarget) slotHandler.ctx.focus();
   }, []);
+
+  const { isActive } = slotHandler;
 
   return <div
     className={classnames("mySlot", isActive && "isActive")}
