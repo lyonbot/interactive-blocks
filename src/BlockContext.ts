@@ -172,6 +172,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
           break;
 
         case "Delete":
+        case "Backspace":
           if (opts.handleDeleteKey) this.deleteActiveBlocks();
           break;
 
