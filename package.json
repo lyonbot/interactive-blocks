@@ -12,7 +12,7 @@
   "scripts": {
     "clean": "rimraf dist types example/dist",
     "prepack": "npm run clean && npm run build:lib",
-    "build": "build:*",
+    "build": "run-p build:*",
     "dev": "run-p dev:*",
     "build:lib": "microbundle",
     "dev:lib": "microbundle watch",
