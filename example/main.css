@@ -109,12 +109,8 @@
   height: 40vh;
 }
 
-body {
-  overflow-x: hidden;
-}
-
 .demoPage-forkMe {
-  position: absolute;
+  position: fixed;
   right: 0;
   top: -30px;
   transform: translateX(30%) rotate(45deg);
