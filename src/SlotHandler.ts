@@ -1,10 +1,16 @@
-import type { CBCutAction, CBPasteAction } from "./action";
+import type { CBBeforePasteAction, CBCutAction, CBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SlotInfo {
   onCut?(action: CBCutAction): void;
+  /**
+   * (optional) validate the data before pasting
+   *
+   * call `action.preventDefault()` to prevent
+   */
+  onBeforePaste?(action: CBBeforePasteAction): void;
   onPaste?(action: CBPasteAction): void;
   onActiveStatusChange?(slot: SlotHandler): void;
 }

@@ -1,5 +1,5 @@
 import { TypedEmitter } from "tiny-typed-emitter";
-import { CBPasteAction, CBCutAction, CBClipboardData } from "./action";
+import { CBPasteAction, CBCutAction, CBClipboardData, isCBClipboardData, CBBeforePasteAction } from "./action";
 import { BlockHandler, BlockInfo } from "./BlockHandler";
 import { find, head } from "./itertools";
 import { SlotHandler, SlotInfo } from "./SlotHandler";
@@ -8,6 +8,7 @@ export interface CBEvents {
   activeElementChanged(ctx: BlockContext): void;
   focus(ctx: BlockContext): void;
   blur(ctx: BlockContext): void;
+  beforePaste(action: CBBeforePasteAction): void;
   paste(action: CBPasteAction): void;
   cut(action: CBCutAction): void;
 }
@@ -58,6 +59,8 @@ export class BlockContext extends TypedEmitter<CBEvents> {
   hasFocus = false;
   options: Required<BlockContextOptions>;
 
+  uuid = `${Date.now().toString(36)}-${Math.random().toString(36)}`;
+
   constructor(options: BlockContextOptions = {}) {
     super();
     this.options = { ...defaultOptions, ...options };
@@ -72,6 +75,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     const populateClipboard = (ev: ClipboardEvent) => {
       const data: CBClipboardData = {
         isCBClipboardData: true,
+        cbContextUUID: this.uuid,
         blocksData: [],
       };
 
@@ -102,42 +106,66 @@ export class BlockContext extends TypedEmitter<CBEvents> {
         const text = ev.clipboardData?.getData("text/plain");
         if (!text) return;
 
-        const data = JSON.parse(text) as CBClipboardData;
-        if (!data.isCBClipboardData) throw new Error("Invalid CBClipboardData");
+        const data = JSON.parse(text);
+        if (!isCBClipboardData(data)) throw new Error("Invalid CBClipboardData");
+
+        const slot = this.activeSlot;
+        if (!slot) return;
 
         const activeBlock = head(this.activeBlocks);
-        const activeSlot = this.activeSlot;
+        const index =
+          slot === activeBlock?.ownerSlot
+            ? activeBlock.index  // insert before current selected
+            : Math.max(0, ...Array.from(slot.items.values(), x => 1 + x.index)); // insert after last item inside slot
 
-        if (activeSlot) {
-          const slot = activeSlot;
-          const index =
-            slot === activeBlock?.ownerSlot
-              ? activeBlock.index  // insert before current selected
-              : Math.max(0, ...Array.from(slot.items.values(), x => 1 + x.index)); // insert after last item inside slot
 
-          const action: CBPasteAction = {
-            type: "paste",
-            ctx: this,
-            data,
-            slot,
-            index,
-          };
-          activeSlot.info.onPaste?.(action);
-          this.emit("paste", action);
+        // ----------------------------
+        // event "beforePaste"
 
-          setTimeout(() => {
-            // auto select the new block, if created
-            // TODO: use subscriber instead of timer
-            const maxIndex = data.blocksData.length + index - 1;
-            const newBlocks = Array.from(slot.items).filter(block => block.index >= index && block.index <= maxIndex);
-            if (newBlocks.length) {
-              this.activeSlot = slot;
-              this.activeBlocks.clear();
-              newBlocks.forEach(block => this.activeBlocks.add(block));
-              this.syncActiveElementStatus();
-            }
-          }, 100);
-        }
+        const beforePasteAction: CBBeforePasteAction = {
+          type: "beforePaste",
+          ctx: this,
+          data,
+          slot,
+          preventDefault() { beforePasteAction.returnValue = false; },
+          returnValue: true,
+        };
+        slot.info.onBeforePaste?.(beforePasteAction);
+        this.emit("beforePaste", beforePasteAction);
+
+        // preventDefault is called
+        if (beforePasteAction.returnValue === false) return;
+
+
+        // ----------------------------
+        // event "paste"
+
+        const action: CBPasteAction = {
+          type: "paste",
+          ctx: this,
+          data,
+          slot,
+          index,
+        };
+        slot.info.onPaste?.(action);
+        this.emit("paste", action);
+
+
+        // ----------------------------
+        // active new blocks
+
+        setTimeout(() => {
+          // auto select the new block, if created
+          // TODO: use subscriber instead of timer
+          const maxIndex = data.blocksData.length + index - 1;
+          const newBlocks = Array.from(slot.items).filter(block => block.index >= index && block.index <= maxIndex);
+          if (newBlocks.length) {
+            this.activeSlot = slot;
+            this.activeBlocks.clear();
+            newBlocks.forEach(block => this.activeBlocks.add(block));
+            this.syncActiveElementStatus();
+          }
+        }, 100);
       } catch (err) {
         console.error("Failed to paste!", err);
       }

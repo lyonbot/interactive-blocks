@@ -82,10 +82,11 @@ You can add event listeners to `blockContext.on("event-name", callback)`
 - **activeElementChanged** `(ctx: BlockContext)`
 - **focus** `(ctx: BlockContext)`
 - **blur** `(ctx: BlockContext)`
+- **beforePaste** `(action: CBBeforePasteAction)`
 - **paste** `(action: CBPasteAction)`
 - **cut** `(action: CBCutAction)`
 
-In general, you don't need to listen `paste` and `cut` events of `blockContext` here -- when you create a Slot Handler, you shall implement and provide `onPaste(action: CBPasteAction)` and `onCut(action: CBCutAction)` there.
+In general, you don't need to listen `beforePaste`, `paste`, `cut` events of `blockContext` here -- when you create a Slot Handler, you may implement and provide correspond callbacks there.
 
 #### hasFocus and keyboard shortcuts
 
@@ -122,6 +123,9 @@ const slotHandler = parent.createSlot({
   onCut: (action) => { console.log('cut', action); },
   onPaste: (action) => { console.log('paste', action); },
   onActiveStatusChange: () => { /* change the style if needed */ },
+
+  // not frequently used callbacks:
+  // onBeforePaste: (action) => { console.log('before paste', action); },   // call `action.preventDefault()` to prevent pasting
 })
 ```
 
