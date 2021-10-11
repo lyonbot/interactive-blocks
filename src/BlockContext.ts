@@ -70,6 +70,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     const hiddenInput = this.hiddenInput = document.createElement("textarea");
     hiddenInput.style.cssText = "opacity:0;left:0;top:0;position:fixed;width:2px;height:2px";
     hiddenInput.tabIndex = -1;
+    hiddenInput.inputMode = "none";
     hiddenInput.ownerDocument.body.appendChild(hiddenInput);
 
     const populateClipboard = (ev: ClipboardEvent) => {
@@ -371,7 +372,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
    * the current active slot.
    *
    * WARN:
-   * 1. NO RELATION to `activeBlocks`. See `slotOfActiveBlocks` if needed.
+   * 1. this is NOT ALWAYS related to `activeBlocks`. See `slotOfActiveBlocks` if needed.
    * 2. always invoke `syncActiveElementStatus` after mutating this.
    */
   activeSlot: SlotHandler | null = null;
