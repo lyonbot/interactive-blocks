@@ -1,6 +1,6 @@
 {
   "name": "copyable-blocks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "make blocks and slots selectable, copyable with cursor and keyboard. Multiple selection is supported.",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
