@@ -1,0 +1,20 @@
+{
+  "name": "copyable-blocks",
+  "version": "1.0.4",
+  "description": "Make your Block and Slot components interactive, (multiple-)selectable, copyable, draggable.",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "main": "./index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lyonbot/interactive-blocks.git"
+  },
+  "author": "lyonbot",
+  "license": "MIT",
+  "homepage": "https://github.com/lyonbot/interactive-blocks#readme",
+  "dependencies": {
+    "@lyonbot/interactive-blocks": "*"
+  }
+}
