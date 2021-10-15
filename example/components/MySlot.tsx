@@ -27,6 +27,22 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
         insert: { index: action.index, items: action.data.blocksData.map(clipboardDataToMyDataItem) },
       }),
     onActiveStatusChange: () => forceUpdate(),
+
+    onDragHoverStatusChange: () => forceUpdate(),
+    onMoveInSlot: (action) =>
+      dispatch({
+        path: getPathFromOwnerBlock(ownerBlock),
+        moveInSlot: { fromIndexes: action.blocks.map(x => x.index), toIndex: action.index },
+      }),
+    onMoveToThisSlot: (action) =>
+      dispatch({
+        path: getPathFromOwnerBlock(ownerBlock),
+        moveBetweenSlots: {
+          fromPath: getPathFromOwnerBlock(action.fromSlot?.ownerBlock),
+          fromIndexes: action.blocks.map(x => x.index),
+          toIndex: action.index,
+        },
+      }),
   }, ownerBlock), []);
   useUnmount(() => slotHandler.dispose());
 
@@ -35,12 +51,15 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
     if (document.activeElement === ev.currentTarget) slotHandler.ctx.focus();
   }, []);
 
-  const { isActive } = slotHandler;
+  const dragEventHandlers = useMemo(() => blockContext.dragging.getDefaultSlotEventHandlers(slotHandler), []);
+
+  const { isActive, isDragHovering } = slotHandler;
 
   return <div
-    className={classnames("mySlot", isActive && "isActive")}
+    className={classnames("mySlot", isActive && "isActive", isDragHovering && "isDragHovering")}
     tabIndex={-1}
     onPointerUp={onPointerUp}
+    {...dragEventHandlers}
   >
     <OwnerSlotProvider value={slotHandler}>
       {
@@ -49,5 +68,20 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
           : <div className="mySlot-emptyPlaceholder">Nothing</div>
       }
     </OwnerSlotProvider>
+
+    {
+      //-------------------------------------------------
+      // this is a indicator for drag-and-drop, showing a bar at the indexToDrop
+      // `mySlot` is a `display: grid` container, so we can control the position of indicator with `grid-row-start`
+      // note:
+      // 1. indicator's height is fixed so we can use negative marginBottom to avoid affecting blocks' position.
+      // 2. `indexToDrop` is always valid number when `isDragHovering == true`
+
+      slotHandler.isDragHovering &&
+      <div className="mySlot-indexToDrop" key="indexToDrop" style={{ "grid-row-start": slotHandler.indexToDrop! + 1 }}>
+        {`indexToDrop = ${slotHandler.indexToDrop}`}
+      </div>
+      //-------------------------------------------------
+    }
   </div>;
 });

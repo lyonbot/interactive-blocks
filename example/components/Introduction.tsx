@@ -36,7 +36,8 @@ export const Introduction = () => {
 
   return <div>
     <ul>
-      <li>Click and select block / slot</li>
+      <li>Click to select block / slot</li>
+      <li>Drag and drop. Also supports cross-window dragging.</li>
       <li>Copy, Cut, Paste with <kbd>Ctrl+C</kbd> / <kbd>Ctrl+X</kbd> / <kbd>Ctrl+V</kbd></li>
       <li>Navigate between blocks with arrow keys</li>
       <li>Select multiple blocks with <kbd>Ctrl</kbd> or <kbd>Shift</kbd></li>

@@ -9,7 +9,7 @@ export const myDataItemToClipboardData = (x: MyDataItem): any => {
   return { ...x };
 };
 
-export const getPathFromOwnerBlock = (block: BlockHandler | null) => {
+export const getPathFromOwnerBlock = (block: BlockHandler | null | undefined) => {
   const ans = [] as number[];
   while (block) {
     ans.unshift(block.index);

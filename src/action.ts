@@ -19,30 +19,57 @@ export function isCBClipboardData(data: any): data is CBClipboardData {
   return true;
 }
 
-export interface CBPasteAction {
+/** a utils for typescript, to make a data class with `preventDefault` and `returnValue` */
+const actionClass = <T>() => {
+  type ActionClass = T & { preventDefault(): void; returnValue: boolean };
+  function Action(this: ActionClass, x: T) {
+    Object.assign(this, x);
+    this.returnValue = true;
+    this.preventDefault = () => { this.returnValue = false; };
+  }
+
+  return Action as unknown as new (data: T) => ActionClass;
+};
+
+export type CBPasteAction = InstanceType<typeof CBPasteAction>;
+export const CBPasteAction = actionClass<{
   readonly type: "paste";
   readonly ctx: BlockContext;
   readonly data: CBClipboardData; // data from clipboard
   readonly slot: SlotHandler;
   readonly index: number; // insert before which item
-}
+}>();
 
-export interface CBBeforePasteAction {
-  readonly type: "beforePaste";
-  readonly ctx: BlockContext;
-  readonly data: CBClipboardData; // data from clipboard
-  readonly slot: SlotHandler;
-  // no index, because it might change later
-
-  preventDefault(): void;
-  returnValue: boolean;
-}
-
-export interface CBCutAction {
+export type CBCutAction = InstanceType<typeof CBCutAction>;
+export const CBCutAction = actionClass<{
   readonly type: "cut";
   readonly ctx: BlockContext;
   readonly slot: SlotHandler;
   readonly blocks: BlockHandler[];
-}
+}>();
 
-export type CBAction = CBBeforePasteAction | CBPasteAction | CBCutAction;
+export type CBMoveInSlotAction = InstanceType<typeof CBMoveInSlotAction>;
+export const CBMoveInSlotAction = actionClass<{
+  readonly type: "moveInSlot";
+  readonly ctx: BlockContext;
+  readonly slot: SlotHandler;
+  /** source blocks. theirs ownerSlot is the same as current slot! */
+  readonly blocks: BlockHandler[];
+  /** position after removing blocks, before inserting */
+  readonly index: number;
+}>();
+
+export type CBMoveBetweenSlotsAction = InstanceType<typeof CBMoveBetweenSlotsAction>;
+export const CBMoveBetweenSlotsAction = actionClass<{
+  readonly type: "moveBetweenSlots";
+  readonly ctx: BlockContext;
+
+  readonly fromSlot: SlotHandler | null;
+  /** source blocks. theirs ownerSlot is the same as fromSlot! */
+  readonly blocks: BlockHandler[];
+
+  readonly toSlot: SlotHandler;
+  readonly index: number;
+}>();
+
+export type CBAction = CBPasteAction | CBCutAction | CBMoveInSlotAction | CBMoveBetweenSlotsAction;

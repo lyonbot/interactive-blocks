@@ -2,7 +2,7 @@
 
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/lyonbot/copyable-blocks/main) ![npm](https://img.shields.io/npm/v/copyable-blocks)
 
-Make blocks and slots selectable, copyable with cursor and keyboard. Multiple selection is supported.
+Make blocks and slots (multiple-)selectable, copyable, draggable with cursor and keyboard.
 
 [ [▶️ Try the Demo](https://lyonbot.github.io/copyable-blocks/) ] [ [📁 View on GitHub](https://github.com/lyonbot/copyable-blocks) ]
 
@@ -12,9 +12,11 @@ Make blocks and slots selectable, copyable with cursor and keyboard. Multiple se
 npm i copyable-blocks
 ```
 
+**NOTE** This part only describes the basic setup, which adds keyboard shortcuts and (multiple) selection supports. To support drag-and-drop, [read this guide _later_](./docs/drag-and-drop.md)
+
 ### 🤔 Determine the way to pass data
 
-copyable-blocks works with most MV* frameworks including React, Vue.
+copyable-blocks works with most MV\* frameworks including React, Vue.
 
 Before writing your component, determine a way to pass data, based on your framework...
 
@@ -82,11 +84,12 @@ You can add event listeners to `blockContext.on("event-name", callback)`
 - **activeElementChanged** `(ctx: BlockContext)`
 - **focus** `(ctx: BlockContext)`
 - **blur** `(ctx: BlockContext)`
-- **beforePaste** `(action: CBBeforePasteAction)`
 - **paste** `(action: CBPasteAction)`
 - **cut** `(action: CBCutAction)`
 
-In general, you don't need to listen `beforePaste`, `paste`, `cut` events of `blockContext` here -- when you create a Slot Handler, you may implement and provide correspond callbacks there.
+In general, you don't need to listen `paste`, `cut` events of `blockContext` here -- when you create a Slot Handler, you may implement and provide correspond callbacks there.
+
+Additionally, to support drag-and-drop, please read [./docs/drag-and-drop.md](./docs/drag-and-drop.md)
 
 #### hasFocus and keyboard shortcuts
 
@@ -113,20 +116,23 @@ In your own slot component...
 Inherit these data from parent:
 
 - `blockContext`
-- `ownerBlock` (can be *null* for the outermost slot)
+- `ownerBlock` (can be _null_ for the outermost slot)
 
 Then, create a Slot Handler. This handler will be provided to children as `ownerSlot`
 
 ```js
-const parent = ownerBlock || blockContext;  // use `blockContext` if no ownerBlock
+const parent = ownerBlock || blockContext; // use `blockContext` if no ownerBlock
 const slotHandler = parent.createSlot({
-  onCut: (action) => { console.log('cut', action); },
-  onPaste: (action) => { console.log('paste', action); },
-  onActiveStatusChange: () => { /* change the style if needed */ },
-
-  // not frequently used callbacks:
-  // onBeforePaste: (action) => { console.log('before paste', action); },   // call `action.preventDefault()` to prevent pasting
-})
+  onCut: (action) => {
+    console.log("cut", action);
+  },
+  onPaste: (action) => {
+    console.log("paste", action);
+  }, // call `action.preventDefault()` to prevent pasting
+  onActiveStatusChange: () => {
+    /* change the style if needed */
+  },
+});
 ```
 
 You shall implement how cutting / pasting blocks works via `onCut`, `onPaste`.
@@ -136,7 +142,7 @@ You shall implement how cutting / pasting blocks works via `onCut`, `onPaste`.
 Dispose the handler when your component is removed.
 
 ```js
-slotHandler.dispose()
+slotHandler.dispose();
 ```
 
 #### handing DOM events
@@ -174,9 +180,9 @@ Keyboard shortcuts (Ctrl + V) works on this slot only if `(blockContext.hasFocus
 
 Hence, three status shall be considered:
 
-1. Inactive *-- eg. gray*
-2. Active but not focused *-- eg. dim blue*
-3. Active and focused *-- eg. bright blue*
+1. Inactive _-- eg. gray_
+2. Active but not focused _-- eg. dim blue_
+3. Active and focused _-- eg. bright blue_
 
 To observe `blockContext.hasFocus`:
 
@@ -195,7 +201,7 @@ To observe `slotHandler.isActive`:
 > When blockContext is focused, let the **root component** add a className to its DOM element.
 >
 > Then, write the stylesheets like this:
-> 
+>
 > ```css
 > .mySlot {
 >   /* status 1 */
@@ -203,12 +209,12 @@ To observe `slotHandler.isActive`:
 >
 > .mySlot.isActive {
 >   /* status 2 */
->   outline: 1px solid #C33;    
+>   outline: 1px solid #c33;
 > }
 >
 > .myPage.hasFocus .mySlot.isActive {
 >   /* status 3 */
->   outline: 2px solid #F00; 
+>   outline: 2px solid #f00;
 > }
 > ```
 
@@ -223,7 +229,7 @@ In your own block component...
 Inherit these data from parent:
 
 - `blockContext`
-- `ownerSlot` (can be *null* for the outermost block)
+- `ownerSlot` (can be _null_ for the outermost block)
 
 Then, create a Block Handler. This handler will be provided to children as `ownerBlock`
 
@@ -249,7 +255,7 @@ The return value of `data` getter, may has a `toJSON()` method, which will be ca
 Dispose the handler when your component is removed.
 
 ```js
-blockHandler.dispose()
+blockHandler.dispose();
 ```
 
 #### handing DOM events
@@ -291,9 +297,9 @@ Additionally, `blockHandler.activeNumber` will be 0, 1, 2... if multiple blocks 
 
 Hence, three status shall be considered:
 
-1. Inactive *-- eg. gray*
-2. Active but not focused *-- eg. dim blue*
-3. Active and focused *-- eg. bright blue*
+1. Inactive _-- eg. gray_
+2. Active but not focused _-- eg. dim blue_
+3. Active and focused _-- eg. bright blue_
 
 To observe `blockContext.hasFocus`:
 
@@ -312,7 +318,7 @@ To observe `blockHandler.isActive` and `blockHandler.activeNumber`:
 > When blockContext is focused, let the **root component** add a className to its DOM element.
 >
 > Then, write the stylesheets like this:
-> 
+>
 > ```css
 > .myBlock {
 >   /* status 1 */
@@ -320,11 +326,11 @@ To observe `blockHandler.isActive` and `blockHandler.activeNumber`:
 >
 > .myBlock.isActive {
 >   /* status 2 */
->   outline: 1px solid #C33;    
+>   outline: 1px solid #c33;
 > }
 >
 > .myPage.hasFocus .myBlock.isActive {
 >   /* status 3 */
->   outline: 2px solid #F00; 
+>   outline: 2px solid #f00;
 > }
 > ```

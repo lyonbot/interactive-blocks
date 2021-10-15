@@ -5,6 +5,12 @@ import { getValueOf, ValueOrGetter } from "./ValueOrGetter";
 export interface BlockInfo {
   index: ValueOrGetter<number>;
   data: ValueOrGetter<Record<string, any>>;
+
+  /**
+   * you can attach something (eg. `this` of component) as `blockHandler.ref`
+   */
+  ref?: any;
+
   onActiveStatusChange?(element: BlockHandler): void;
 }
 
@@ -27,6 +33,10 @@ export class BlockHandler {
 
   get isActive() {
     return this._activeNumber !== false;
+  }
+
+  get ref() {
+    return this.info.ref;
   }
 
   /**
@@ -72,5 +82,11 @@ export class BlockHandler {
     this.ownerSlot?.items.delete(this);
     this.slots.forEach(slot => slot.dispose());
     this.slots.clear();
+    this.info = emptyBlockInfo;
   }
 }
+
+const emptyBlockInfo = {
+  index: () => { throw new Error("Accessing a disposed block"); },
+  data: () => { throw new Error("Accessing a disposed block"); },
+};

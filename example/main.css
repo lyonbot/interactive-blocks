@@ -35,6 +35,7 @@
 /* ------------------------------- */
 
 .mySlot {
+  display: grid; /* we use grid to place the <div class="mySlot-indexToDrop" /> correctly */
   padding: 8px;
   background: linear-gradient(0deg, #eee, #ccc);
   border-radius: 8px;
@@ -51,9 +52,30 @@
   box-shadow: 0 0 10px 2px #99c inset, 0 0 1px 2px blue inset;
 }
 
+.mySlot.isDragHovering {
+  /* extra style for drag and drop */
+  outline: 2px dashed blue;
+}
+
 .mySlot-emptyPlaceholder {
   color: rgba(0, 0, 0, 0.4);
   text-align: center;
+}
+
+.mySlot-indexToDrop {
+  grid-area: 99999 / 1 / span 0 / -1;
+  /* todo: use grid-row-start to change position */
+
+  box-sizing: border-box;
+  margin-bottom: -32px;
+  height: 32px;
+  z-index: 1;
+  pointer-events: none;
+
+  text-align: center;
+  transform: translateY(-50%);
+  background-image: linear-gradient(0deg, #00f0 20%, #00f, #00f0 60%);
+  color: #fff;
 }
 
 /* ------------------------------- */

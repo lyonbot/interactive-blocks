@@ -1,16 +1,24 @@
 import { TypedEmitter } from "tiny-typed-emitter";
-import { CBPasteAction, CBCutAction, CBClipboardData, isCBClipboardData, CBBeforePasteAction } from "./action";
+import { CBPasteAction, CBCutAction, CBClipboardData, isCBClipboardData, CBMoveInSlotAction, CBMoveBetweenSlotsAction } from "./action";
 import { BlockHandler, BlockInfo } from "./BlockHandler";
+import { DraggingContext } from "./DraggingContext";
 import { find, head } from "./itertools";
 import { SlotHandler, SlotInfo } from "./SlotHandler";
+
+interface WithModifierKeys {
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  metaKey: boolean;
+}
 
 export interface CBEvents {
   activeElementChanged(ctx: BlockContext): void;
   focus(ctx: BlockContext): void;
   blur(ctx: BlockContext): void;
-  beforePaste(action: CBBeforePasteAction): void;
   paste(action: CBPasteAction): void;
   cut(action: CBCutAction): void;
+  moveInSlot(action: CBMoveInSlotAction): void;
+  moveBetweenSlots(action: CBMoveBetweenSlotsAction): void;
 }
 
 export interface BlockContextOptions {
@@ -60,6 +68,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
   options: Required<BlockContextOptions>;
 
   uuid = `${Date.now().toString(36)}-${Math.random().toString(36)}`;
+  dragging = new DraggingContext(this);
 
   constructor(options: BlockContextOptions = {}) {
     super();
@@ -74,21 +83,11 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     hiddenInput.ownerDocument.body.appendChild(hiddenInput);
 
     const populateClipboard = (ev: ClipboardEvent) => {
-      const data: CBClipboardData = {
-        isCBClipboardData: true,
-        cbContextUUID: this.uuid,
-        blocksData: [],
-      };
-
-      this.activeBlocks.forEach(block => {
-        data.blocksData.push(block.data);
-      });
-
-      // nothing to copy?
-      if (data.blocksData.length === 0) return;
+      const text = this.getTextForClipboard();
+      if (!text) return;
 
       ev.preventDefault();
-      ev.clipboardData?.setData("text/plain", JSON.stringify(data));
+      ev.clipboardData?.setData("text/plain", text);
     };
     hiddenInput.addEventListener("copy", (ev) => {
       populateClipboard(ev);
@@ -108,65 +107,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
         if (!text) return;
 
         const data = JSON.parse(text);
-        if (!isCBClipboardData(data)) throw new Error("Invalid CBClipboardData");
-
-        const slot = this.activeSlot;
-        if (!slot) return;
-
-        const activeBlock = head(this.activeBlocks);
-        const index =
-          slot === activeBlock?.ownerSlot
-            ? activeBlock.index  // insert before current selected
-            : Math.max(0, ...Array.from(slot.items.values(), x => 1 + x.index)); // insert after last item inside slot
-
-
-        // ----------------------------
-        // event "beforePaste"
-
-        const beforePasteAction: CBBeforePasteAction = {
-          type: "beforePaste",
-          ctx: this,
-          data,
-          slot,
-          preventDefault() { beforePasteAction.returnValue = false; },
-          returnValue: true,
-        };
-        slot.info.onBeforePaste?.(beforePasteAction);
-        this.emit("beforePaste", beforePasteAction);
-
-        // preventDefault is called
-        if (beforePasteAction.returnValue === false) return;
-
-
-        // ----------------------------
-        // event "paste"
-
-        const action: CBPasteAction = {
-          type: "paste",
-          ctx: this,
-          data,
-          slot,
-          index,
-        };
-        slot.info.onPaste?.(action);
-        this.emit("paste", action);
-
-
-        // ----------------------------
-        // active new blocks
-
-        setTimeout(() => {
-          // auto select the new block, if created
-          // TODO: use subscriber instead of timer
-          const maxIndex = data.blocksData.length + index - 1;
-          const newBlocks = Array.from(slot.items).filter(block => block.index >= index && block.index <= maxIndex);
-          if (newBlocks.length) {
-            this.activeSlot = slot;
-            this.activeBlocks.clear();
-            newBlocks.forEach(block => this.activeBlocks.add(block));
-            this.syncActiveElementStatus();
-          }
-        }, 100);
+        this.pasteWithData(data);
       } catch (err) {
         console.error("Failed to paste!", err);
       }
@@ -184,6 +125,14 @@ export class BlockContext extends TypedEmitter<CBEvents> {
       const opts = this.options;
 
       switch (ev.code) {
+        case "KeyA":
+          if (opts.multipleSelect && (ev.ctrlKey || ev.metaKey)) {
+            this.activeBlocks.clear();
+            Array.from(this.slotOfActiveBlocks?.items || []).sort((a, b) => a.index - b.index).forEach(block => this.activeBlocks.add(block));
+            this.syncActiveElementStatus();
+          }
+          break;
+
         case "ArrowUp":
           if (opts.navigateWithArrowKeys) this.activeNextBlock(-1, ev.shiftKey || ev.ctrlKey || ev.metaKey);
           break;
@@ -229,11 +178,79 @@ export class BlockContext extends TypedEmitter<CBEvents> {
   }
 
   /**
+   * prepare text to write to clipboard
+   *
+   * @returns `undefined` if cannot copy. otherwise returns text
+   */
+  getTextForClipboard() {
+    const data: CBClipboardData = {
+      isCBClipboardData: true,
+      cbContextUUID: this.uuid,
+      blocksData: [],
+    };
+
+    this.activeBlocks.forEach(block => {
+      data.blocksData.push(block.data);
+    });
+
+    // nothing to copy?
+    if (data.blocksData.length === 0) return;
+
+    return JSON.stringify(data);
+  }
+
+  /**
    * Focus the hidden input and write selected blocks' data to the clipboard.
    */
   copy() {
     this.hiddenInput.focus();
     document.execCommand("copy");
+  }
+
+  pasteWithData(data: CBClipboardData, targetIndex?: number) {
+    if (!isCBClipboardData(data)) throw new Error("Invalid CBClipboardData");
+
+    const slot = this.activeSlot;
+    if (!slot) return;
+
+    const activeBlock = head(this.activeBlocks);
+    const index = targetIndex ?? (
+      slot === activeBlock?.ownerSlot
+        ? activeBlock.index  // insert before current selected
+        : Math.max(0, ...Array.from(slot.items.values(), x => 1 + x.index)) // insert after last item inside slot
+    );
+
+    // ----------------------------
+    // event "paste"
+
+    const action = new CBPasteAction({
+      type: "paste",
+      ctx: this,
+      data,
+      slot,
+      index,
+    });
+    slot.info.onPaste?.(action);
+    this.emit("paste", action);
+
+    if (action.returnValue === false) return;
+
+
+    // ----------------------------
+    // active new blocks
+
+    setTimeout(() => {
+      // auto select the new block, if created
+      // TODO: use subscriber instead of timer
+      const maxIndex = data.blocksData.length + index - 1;
+      const newBlocks = Array.from(slot.items).filter(block => block.index >= index && block.index <= maxIndex);
+      if (newBlocks.length) {
+        this.activeSlot = slot;
+        this.activeBlocks.clear();
+        newBlocks.forEach(block => this.activeBlocks.add(block));
+        this.syncActiveElementStatus();
+      }
+    }, 100);
   }
 
   /**
@@ -242,22 +259,33 @@ export class BlockContext extends TypedEmitter<CBEvents> {
    * `cut` event will be emitted on the slot and this context.
    *
    * clipboard not affected. Call `copy` before this, if needed.
+   *
+   * @return `true` if action is handled and not `preventDefault`-ed
    */
   deleteActiveBlocks() {
     const blocks = Array.from(this.activeBlocks.values());
 
     const slot = blocks[0]?.ownerSlot;
-    if (!slot) return;
+    if (!slot) return false;
 
-    const action: CBCutAction = {
+    const block0index = blocks[0]!.index;
+
+    const action = new CBCutAction({
       type: "cut",
       blocks,
       ctx: this,
       slot,
-    };
+    });
 
     slot.info.onCut?.(action);
     this.emit("cut", action);
+
+    // if successful cut, select the next block
+    if (action.returnValue) {
+      const nextBlock = find(slot.items, x => x.index === block0index);
+      if (nextBlock) this.addBlockToSelection(nextBlock);
+    }
+    return action.returnValue;
   }
 
   /**
@@ -425,37 +453,41 @@ export class BlockContext extends TypedEmitter<CBEvents> {
   isFocusingBlock?: BlockHandler;
   isFocusingSlot?: SlotHandler;
 
-  handleSlotPointerUp = (slot: SlotHandler, isCapture?: boolean) => {
-    if (!isCapture && this.isFocusingSlot) return;  // capture and bubbling
-    this.isFocusingSlot = slot;
-  };
+  /**
+   * clear selection
+   */
+  clearSelection() {
+    this.activeBlocks.clear();
+    this.activeSlot = null;
+    this.syncActiveElementStatus();
+  }
 
-  handleBlockPointerUp = (block: BlockHandler, isCapture?: boolean) => {
-    if (!isCapture && this.isFocusingBlock) return;  // capture and bubbling
-    this.isFocusingBlock = block;
-  };
+  /**
+   * select a block or add it to selection ( if multipleSelect is not `none`)
+   *
+   * note: if in multipleSelect mode, `activeSlot` will be affected
+   */
+  addBlockToSelection(
+    currBlock: BlockHandler,
+    multipleSelect: "none" | "ctrl" | "shift" | WithModifierKeys = "none"
+  ): void {
+    if (typeof multipleSelect === "object") {
+      if (multipleSelect.ctrlKey || multipleSelect.metaKey) multipleSelect = "ctrl";
+      else if (multipleSelect.shiftKey) multipleSelect = "shift";
+      else multipleSelect = "none";
+    }
 
-  handleGlobalPointerUp = (ev: PointerEvent) => {
-    const currBlock = this.isFocusingBlock;
-    const multipleSelect = this.options.multipleSelect;
-    let currSlot = this.isFocusingSlot;
-    this.isFocusingBlock = void 0;
-    this.isFocusingSlot = void 0;
+    if (!this.options.multipleSelect) multipleSelect = "none";
 
-    if (!currBlock) {
-      // nothing was clicked
-      if (this.options.deactivateHandlersWhenBlur && this.activeBlocks.size > 0) {
-        this.activeBlocks.clear();
-      }
-    } else if (multipleSelect && (ev.ctrlKey || ev.metaKey)) {
+    if (multipleSelect === "ctrl") {
       // discontinuous multiple-selection
 
       // ensure that they're in the same slot
       if (currBlock.ownerSlot !== this.slotOfActiveBlocks) this.activeBlocks.clear();
 
       this.activeBlocks.add(currBlock);
-      currSlot = currBlock.ownerSlot || void 0;
-    } else if (multipleSelect && (ev.shiftKey)) {
+      this.activeSlot = currBlock.ownerSlot || null;
+    } else if (multipleSelect === "shift") {
       // continuous selection
 
       const slot = currBlock.ownerSlot;
@@ -478,9 +510,11 @@ export class BlockContext extends TypedEmitter<CBEvents> {
           const index = block.index;
           if (index >= minIndex && index <= maxIndex) this.activeBlocks.add(block);
         });
+        this.activeSlot = slot;
       } else {
         // anonymous root slot
         this.activeBlocks.add(currBlock);
+        this.activeSlot = null;
       }
 
     } else {
@@ -489,11 +523,40 @@ export class BlockContext extends TypedEmitter<CBEvents> {
       this.activeBlocks.add(currBlock);
     }
 
-    this.activeSlot = currSlot || null;
+    this.syncActiveElementStatus();
+  }
+
+  handleSlotPointerUp = (slot: SlotHandler, isCapture?: boolean) => {
+    if (!isCapture && this.isFocusingSlot) return;  // capture and bubbling
+    this.isFocusingSlot = slot;
+  };
+
+  handleBlockPointerUp = (block: BlockHandler, isCapture?: boolean) => {
+    if (!isCapture && this.isFocusingBlock) return;  // capture and bubbling
+    this.isFocusingBlock = block;
+  };
+
+  handleGlobalPointerUp = (ev: PointerEvent) => {
+    const currBlock = this.isFocusingBlock;
+    const currSlot = this.isFocusingSlot;
+    this.isFocusingBlock = void 0;
+    this.isFocusingSlot = void 0;
+
+    if (!currBlock) {
+      // nothing was clicked
+      if (this.options.deactivateHandlersWhenBlur && this.activeBlocks.size > 0) {
+        this.activeBlocks.clear();
+      }
+    } else {
+      this.activeSlot = currSlot || null;
+      this.addBlockToSelection(currBlock, (ev.ctrlKey || ev.metaKey) ? "ctrl" : (ev.shiftKey ? "shift" : "none"));
+    }
+
     this.syncActiveElementStatus();
   };
 
   dispose() {
+    this.dragging.dispose();
     this.hiddenInput.parentElement?.removeChild(this.hiddenInput);
     document.removeEventListener("pointerup", this.handleGlobalPointerUp, false);
   }

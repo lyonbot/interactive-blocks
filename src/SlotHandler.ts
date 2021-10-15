@@ -1,16 +1,15 @@
-import type { CBBeforePasteAction, CBCutAction, CBPasteAction } from "./action";
+import type { CBCutAction, CBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SlotInfo {
-  onCut?(action: CBCutAction): void;
   /**
-   * (optional) validate the data before pasting
-   *
-   * call `action.preventDefault()` to prevent
+   * you can attach something (eg. `this` of component) as `slotHandler.ref`
    */
-  onBeforePaste?(action: CBBeforePasteAction): void;
+  ref?: any;
+
+  onCut?(action: CBCutAction): void;
   onPaste?(action: CBPasteAction): void;
   onActiveStatusChange?(slot: SlotHandler): void;
 }
@@ -37,6 +36,9 @@ export class SlotHandler {
     return this.ctx.createBlock(info, this);
   }
 
+  get ref() {
+    return this.info.ref;
+  }
 
   private _isActive = false;
 
@@ -56,6 +58,28 @@ export class SlotHandler {
     return true;
   }
 
+  isDescendantOfBlock(block: BlockHandler) {
+    let ptr: BlockHandler | null | undefined = this.ownerBlock;
+
+    while (ptr) {
+      if (ptr === block) return true;
+      ptr = ptr.ownerSlot?.ownerBlock;
+    }
+
+    return false;
+  }
+
+  isDescendantOfSlot(slot: SlotHandler) {
+    let ptr: SlotHandler | null | undefined = this.ownerBlock?.ownerSlot;
+
+    while (ptr) {
+      if (ptr === slot) return true;
+      ptr = ptr.ownerBlock?.ownerSlot;
+    }
+
+    return false;
+  }
+
   dispose() {
     let needSync = false;
     if (this.ctx.slotOfActiveBlocks === this) {
@@ -71,5 +95,6 @@ export class SlotHandler {
     this.ownerBlock?.slots.delete(this);
     this.items.forEach(child => child.dispose());
     this.items.clear();
+    this.info = {};
   }
 }

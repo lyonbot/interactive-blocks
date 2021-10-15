@@ -10,6 +10,19 @@ export function find<T>(iterator: Iterable<T> | null | undefined, predicate: Pre
   }
 }
 
+export function reduce<T, U>(iterator: Iterable<T> | null | undefined, initial: U, reducer: (agg: U, item: T, index: number) => U): U {
+  if (!iterator) return initial;
+
+  let index = 0;
+  let agg = initial;
+  for (const item of iterator) {
+    agg = reducer(agg, item, index);
+    index += 1;
+  }
+
+  return agg;
+}
+
 export function head<T>(iterator: Iterable<T> | null | undefined): T | undefined {
   if (!iterator) return;
 

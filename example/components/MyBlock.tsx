@@ -28,12 +28,17 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
     if (document.activeElement === ev.currentTarget) blockHandler.ctx.focus();
   }, []);
 
+  const dragEventHandlers = useMemo(() => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler), []);
+
   const { activeNumber, isActive } = blockHandler;
 
   return <div
     className={classnames("myBlock", isActive && "isActive")}
     tabIndex={-1}
     onPointerUp={onPointerUp}
+
+    draggable
+    {...dragEventHandlers}
   >
     {isActive && <div className="myBlock-selectIndex">{activeNumber as number + 1}</div>}
 
