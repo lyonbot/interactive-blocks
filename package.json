@@ -1,8 +1,9 @@
 {
-  "name": "copyable-blocks",
+  "name": "@lyonbot/interactive-blocks",
   "version": "1.0.2",
-  "description": "Make blocks and slots (multiple-)selectable, copyable, draggable with cursor and keyboard.",
+  "description": "Make your Block and Slot components interactive, (multiple-)selectable, copyable, draggable.",
   "publishConfig": {
+    "access": "public",
     "registry": "https://registry.npmjs.org"
   },
   "source": "./src/index.ts",
@@ -11,7 +12,7 @@
   "module": "./dist/index.module.js",
   "exports": "./dist/index.modern.js",
   "types": "./index.d.ts",
-  "amdName": "CopyableBlocks",
+  "amdName": "InteractiveBlocks",
   "scripts": {
     "clean": "rimraf dist types example/dist",
     "prepack": "run-s clean build:lib",
@@ -24,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/lyonbot/copyable-blocks.git"
+    "url": "git+https://github.com/lyonbot/interactive-blocks.git"
   },
   "files": [
     "dist",
@@ -32,13 +33,25 @@
     "/index.d.ts",
     "/docs"
   ],
-  "keywords": [],
+  "keywords": [
+    "interactive",
+    "block",
+    "slot",
+    "component",
+    "drag and drop",
+    "multiple select",
+    "select",
+    "keyboard shortcuts",
+    "copy",
+    "dataTransfer",
+    "clipboard"
+  ],
   "author": "lyonbot",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/lyonbot/copyable-blocks/issues"
+    "url": "https://github.com/lyonbot/interactive-blocks/issues"
   },
-  "homepage": "https://github.com/lyonbot/copyable-blocks#readme",
+  "homepage": "https://github.com/lyonbot/interactive-blocks#readme",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.31.2",
     "@typescript-eslint/parser": "^4.31.2",

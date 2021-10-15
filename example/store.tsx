@@ -1,6 +1,6 @@
 import * as React from "preact";
 import { useContext, useReducer } from "preact/hooks";
-import { moveItemsInArray, moveItemsBetweenArrays } from "copyable-blocks";
+import { moveItemsInArray, moveItemsBetweenArrays, removeItems } from "@lyonbot/interactive-blocks";
 
 export interface MyDataItem {
   name: string;
@@ -66,13 +66,23 @@ const reducer = (state: MyDataItem[], action: StoreAction): MyDataItem[] => {
   // ------------------------
   // now we just mutate `slot` -- it is a clone now
 
-  if (action.rename) if (block) block.name = action.rename.name;
-  if (action.insert) slot.splice(action.insert.index, 0, ...action.insert.items);
-  if (action.remove) [...action.remove.indexes].sort((a, b) => b - a).forEach(index => slot.splice(index, 1));
+  if (action.rename) {
+    if (block) block.name = action.rename.name;
+  }
+
+  if (action.insert) {
+    slot.splice(action.insert.index, 0, ...action.insert.items);
+  }
+
+  if (action.remove) {
+    removeItems(slot, action.remove.indexes);
+  }
+
   if (action.moveInSlot) {
     const { fromIndexes, toIndex } = action.moveInSlot;
     moveItemsInArray(slot, fromIndexes, toIndex);
   }
+
   if (action.moveBetweenSlots) {
     const { fromPath, fromIndexes, toIndex } = action.moveBetweenSlots;
     const fromArr = lazyCloneCtx.getSlotAndBlock(fromPath).slot;

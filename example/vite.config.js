@@ -8,7 +8,7 @@ export default {
   resolve: {
     alias: {
       "events": "eventemitter3",
-      "copyable-blocks": path.resolve(__dirname, ".."),
+      "@lyonbot/interactive-blocks": path.resolve(__dirname, ".."),
     },
   },
 };

@@ -11,7 +11,7 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "copyable-blocks": ["../src/index.ts"]
+      "@lyonbot/interactive-blocks": ["../src/index.ts"]
     }
   },
   "references": [{ "path": "../tsconfig.json" }],

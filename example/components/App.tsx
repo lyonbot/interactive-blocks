@@ -1,6 +1,6 @@
 import * as React from "preact";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { BlockContext } from "copyable-blocks";
+import { BlockContext } from "@lyonbot/interactive-blocks";
 import { MyBlock } from "./MyBlock";
 import { MySlot } from "./MySlot";
 import { useStore } from "../store";
@@ -39,10 +39,10 @@ export const App = function () {
   </BlockContextProvider>;
 };
 
-const githubUrl = "https://github.com/lyonbot/copyable-blocks";
+const githubUrl = "https://github.com/lyonbot/interactive-blocks#readme";
 
 const Header = <>
-  <h2>CopyableBlocks</h2>
+  <h2>InteractiveBlocks</h2>
   <p>Just proving the abilities with shabby Slot and Block components here.</p>
   <p>Learn how to integrate with your own components? <a href={githubUrl} target="_blank">Read the guide on GitHub</a></p>
   <a className="demoPage-forkMe" href={githubUrl} target="_blank">Fork me on GitHub</a>

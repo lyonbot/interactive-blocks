@@ -6,7 +6,7 @@ import { MyDataItem, useStore } from "../store";
 import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames } from "../utils";
 import { MySlot } from "./MySlot";
 
-import type { BlockHandler } from "copyable-blocks";
+import type { BlockHandler } from "@lyonbot/interactive-blocks";
 
 export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDataItem }) {
   const { index, item } = props;
@@ -28,7 +28,10 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
     if (document.activeElement === ev.currentTarget) blockHandler.ctx.focus();
   }, []);
 
-  const dragEventHandlers = useMemo(() => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler), []);
+  const dragEventHandlers = useMemo(
+    () => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react"),
+    []
+  );
 
   const { activeNumber, isActive } = blockHandler;
 

@@ -7,7 +7,7 @@ import { useStore } from "../store";
 import { OwnerSlotProvider } from "../hooks/useOwnerSlot";
 import { classnames, clipboardDataToMyDataItem, getPathFromOwnerBlock } from "../utils";
 
-import type { BlockHandler } from "copyable-blocks";
+import type { BlockHandler } from "@lyonbot/interactive-blocks";
 
 export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; children: React.ComponentChildren }) {
   const ownerBlock = props.ownerBlock || null;
@@ -51,7 +51,10 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
     if (document.activeElement === ev.currentTarget) slotHandler.ctx.focus();
   }, []);
 
-  const dragEventHandlers = useMemo(() => blockContext.dragging.getDefaultSlotEventHandlers(slotHandler), []);
+  const dragEventHandlers = useMemo(
+    () => blockContext.dragging.getDefaultSlotEventHandlers(slotHandler, "react"),
+    []
+  );
 
   const { isActive, isDragHovering } = slotHandler;
 

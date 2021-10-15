@@ -1,4 +1,4 @@
-import type { CBCutAction, CBPasteAction } from "./action";
+import type { IBCutAction, IBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
 
@@ -9,8 +9,8 @@ export interface SlotInfo {
    */
   ref?: any;
 
-  onCut?(action: CBCutAction): void;
-  onPaste?(action: CBPasteAction): void;
+  onCut?(action: IBCutAction): void;
+  onPaste?(action: IBPasteAction): void;
   onActiveStatusChange?(slot: SlotHandler): void;
 }
 

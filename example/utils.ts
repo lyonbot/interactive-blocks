@@ -1,4 +1,4 @@
-import { BlockHandler } from "copyable-blocks";
+import { BlockHandler } from "@lyonbot/interactive-blocks";
 import type { MyDataItem } from "./store";
 
 export const clipboardDataToMyDataItem = (x: any): MyDataItem => {

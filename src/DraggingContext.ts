@@ -1,9 +1,9 @@
 import { BlockHandler } from "./BlockHandler";
 import { SlotHandler } from "./SlotHandler";
 import { BlockContext } from "./BlockContext";
-import { throttle } from "./utils";
+import { EventKeyStyle, getStyledEventHandlersLUT, throttle } from "./utils";
 import { TypedEmitter } from "tiny-typed-emitter";
-import { CBMoveBetweenSlotsAction, CBMoveInSlotAction } from "./action";
+import { IBMoveBetweenSlotsAction, IBMoveInSlotAction } from "./action";
 import { reduce } from "./itertools";
 
 const MIME_CTX_UUID = "x-block-context/uuid";
@@ -36,12 +36,12 @@ declare module "./SlotHandler" {
     /**
      * for drag-n-drop
      */
-    onMoveInSlot?(action: CBMoveInSlotAction): void;
+    onMoveInSlot?(action: IBMoveInSlotAction): void;
 
     /**
      * for drag-n-drop
      */
-    onMoveToThisSlot?(action: CBMoveBetweenSlotsAction): void;
+    onMoveToThisSlot?(action: IBMoveBetweenSlotsAction): void;
 
     /**
      * for drag-n-drop
@@ -130,13 +130,13 @@ export class DraggingContext extends TypedEmitter<DraggingContextEvents> {
 
   // -----------------------------------
 
-  getDefaultBlockEventHandlers(block: BlockHandler) {
-    return {
-      onDragStart: this.handleBlockDragStart.bind(this, block),
-      onDragEnd: this.handleBlockDragEnd.bind(this, block),
-      onDragOver: this.handleBlockDragOver.bind(this, block),
-      onDragLeave: this.handleBlockDragLeave.bind(this, block),
-    };
+  getDefaultBlockEventHandlers<T extends EventKeyStyle>(block: BlockHandler, style: T) {
+    return getStyledEventHandlersLUT({
+      dragStart: this.handleBlockDragStart.bind(this, block),
+      dragEnd: this.handleBlockDragEnd.bind(this, block),
+      dragOver: this.handleBlockDragOver.bind(this, block),
+      dragLeave: this.handleBlockDragLeave.bind(this, block),
+    }, style);
   }
 
   handleBlockDragStart(block: BlockHandler, ev: DragEvent) {
@@ -193,29 +193,29 @@ export class DraggingContext extends TypedEmitter<DraggingContextEvents> {
 
   // -----------------------------------
 
-  getDefaultSlotEventHandlers(slot: SlotHandler) {
-    return {
-      onDragOver: (ev: DragEvent) => {
+  getDefaultSlotEventHandlers<T extends EventKeyStyle>(slot: SlotHandler, style: T) {
+    return getStyledEventHandlersLUT({
+      dragOver: (ev: DragEvent) => {
         if (!this.handleSlotDragOver(slot, ev)) return;
 
         ev.preventDefault();
         ev.stopPropagation();
       },
 
-      onDragLeave: (ev: DragEvent) => {
+      dragLeave: (ev: DragEvent) => {
         this.handleSlotDragLeave(slot);
 
         ev.preventDefault();
         ev.stopPropagation();
       },
 
-      onDrop: (ev: DragEvent) => {
+      drop: (ev: DragEvent) => {
         this.handleSlotDrop(slot, ev);
 
         ev.preventDefault();
         ev.stopPropagation();
       },
-    };
+    }, style);
   }
 
   handleSlotDragOver(slot: SlotHandler, ev: DragEvent) {
@@ -253,7 +253,7 @@ export class DraggingContext extends TypedEmitter<DraggingContextEvents> {
       // move in same slot
       const index = indexToDrop - blocks.filter(x => x.index < indexToDrop).length;
 
-      const action = new CBMoveInSlotAction({
+      const action = new IBMoveInSlotAction({
         type: "moveInSlot",
         blocks,
         ctx,
@@ -278,7 +278,7 @@ export class DraggingContext extends TypedEmitter<DraggingContextEvents> {
     } else {
       // move between slots
       const index = indexToDrop;
-      const action = new CBMoveBetweenSlotsAction({
+      const action = new IBMoveBetweenSlotsAction({
         type: "moveBetweenSlots",
         blocks,
         ctx,

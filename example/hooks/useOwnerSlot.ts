@@ -2,7 +2,7 @@
 
 import * as React from "preact";
 import { useContext } from "preact/hooks";
-import type { SlotHandler } from "copyable-blocks";
+import type { SlotHandler } from "@lyonbot/interactive-blocks";
 
 const OwnerSlot = React.createContext(null as SlotHandler | null);
 OwnerSlot.displayName = "OwnerSlot";

@@ -2,7 +2,7 @@
 
 import * as React from "preact";
 import { useContext } from "preact/hooks";
-import type { BlockContext } from "copyable-blocks";
+import type { BlockContext } from "@lyonbot/interactive-blocks";
 
 const bc = React.createContext<BlockContext>(null as any);
 export const useBlockContext = () => useContext(bc);

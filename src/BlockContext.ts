@@ -1,5 +1,5 @@
 import { TypedEmitter } from "tiny-typed-emitter";
-import { CBPasteAction, CBCutAction, CBClipboardData, isCBClipboardData, CBMoveInSlotAction, CBMoveBetweenSlotsAction } from "./action";
+import { IBPasteAction, IBCutAction, IBClipboardData, isIBClipboardData, IBMoveInSlotAction, IBMoveBetweenSlotsAction } from "./action";
 import { BlockHandler, BlockInfo } from "./BlockHandler";
 import { DraggingContext } from "./DraggingContext";
 import { find, head } from "./itertools";
@@ -11,14 +11,14 @@ interface WithModifierKeys {
   metaKey: boolean;
 }
 
-export interface CBEvents {
+export interface BlockContextEvents {
   activeElementChanged(ctx: BlockContext): void;
   focus(ctx: BlockContext): void;
   blur(ctx: BlockContext): void;
-  paste(action: CBPasteAction): void;
-  cut(action: CBCutAction): void;
-  moveInSlot(action: CBMoveInSlotAction): void;
-  moveBetweenSlots(action: CBMoveBetweenSlotsAction): void;
+  paste(action: IBPasteAction): void;
+  cut(action: IBCutAction): void;
+  moveInSlot(action: IBMoveInSlotAction): void;
+  moveBetweenSlots(action: IBMoveBetweenSlotsAction): void;
 }
 
 export interface BlockContextOptions {
@@ -60,7 +60,7 @@ const defaultOptions: Required<BlockContextOptions> = {
   multipleSelect: true,
 };
 
-export class BlockContext extends TypedEmitter<CBEvents> {
+export class BlockContext extends TypedEmitter<BlockContextEvents> {
   hiddenInput: HTMLTextAreaElement;
   private _lastActiveElement: HTMLElement | Element | null = null;
 
@@ -183,9 +183,9 @@ export class BlockContext extends TypedEmitter<CBEvents> {
    * @returns `undefined` if cannot copy. otherwise returns text
    */
   getTextForClipboard() {
-    const data: CBClipboardData = {
-      isCBClipboardData: true,
-      cbContextUUID: this.uuid,
+    const data: IBClipboardData = {
+      isIBClipboardData: true,
+      ibContextUUID: this.uuid,
       blocksData: [],
     };
 
@@ -207,8 +207,8 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     document.execCommand("copy");
   }
 
-  pasteWithData(data: CBClipboardData, targetIndex?: number) {
-    if (!isCBClipboardData(data)) throw new Error("Invalid CBClipboardData");
+  pasteWithData(data: IBClipboardData, targetIndex?: number) {
+    if (!isIBClipboardData(data)) throw new Error("Invalid IBClipboardData");
 
     const slot = this.activeSlot;
     if (!slot) return;
@@ -223,7 +223,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
     // ----------------------------
     // event "paste"
 
-    const action = new CBPasteAction({
+    const action = new IBPasteAction({
       type: "paste",
       ctx: this,
       data,
@@ -270,7 +270,7 @@ export class BlockContext extends TypedEmitter<CBEvents> {
 
     const block0index = blocks[0]!.index;
 
-    const action = new CBCutAction({
+    const action = new IBCutAction({
       type: "cut",
       blocks,
       ctx: this,

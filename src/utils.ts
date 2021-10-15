@@ -66,3 +66,33 @@ export function moveItemsBetweenArrays(fromArr: any[], fromIndexes: number[], to
   const items = removeItems(fromArr, fromIndexes);
   toArr.splice(toIndex, 0, ...items);
 }
+
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+type FunctionLUT = Record<string, Function>;
+
+export type StyledFunctionLUTs<T extends FunctionLUT> = {
+  "react": { [k in keyof T as ToReactEventKey<k>]: T[k] };
+  "lowercase": { [k in keyof T as ToLowerCaseEventKey<k>]: T[k] };
+  "camelCase": T;
+};
+
+export type EventKeyStyle = "react" | "lowercase" | "camelCase";
+
+type ToReactEventKey<T> = T extends string ? `on${Capitalize<T>}` : T;
+type ToLowerCaseEventKey<T> = T extends string ? Lowercase<T> : T;
+
+export function getStyledEventHandlersLUT<T extends FunctionLUT, S extends EventKeyStyle>(o: T, style: S): StyledFunctionLUTs<T>[S];
+export function getStyledEventHandlersLUT(o: FunctionLUT, style: EventKeyStyle) {
+  if (style === "camelCase") return o;
+
+  const answer = {} as FunctionLUT;
+  Object.keys(o).forEach(ok => {
+    let key = ok;
+    if (style === "react") key = `on${key[0]?.toUpperCase()}${key.substr(1)}`;
+    if (style === "lowercase") key = key.toLowerCase();
+
+    answer[key] = o[ok]!;
+  });
+  return answer;
+}

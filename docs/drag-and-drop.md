@@ -1,26 +1,33 @@
 # Drag and Drop
 
-With copyable-blocks, it is easy to support drag and drop:
+Read [Basic Setup](./basic-setup.md) before this!
 
-## Guide
+To support drag and drop, modify your Block Component and Slot Component:
 
-### 🧩 Block Component
+## 🧩 Block Component
 
-#### creating
+### creating
 
 no extra work to do.
 
-#### handle DOM events
+### handle DOM events
 
 First of all, add `draggable` to the DOM element!
 
 Then, while creating, generate the default event listeners:
 
 ```js
-const theGeneratedListeners = blockContext.dragging.getDefaultBlockEventHandlers(blockHandler);
+const theGeneratedListeners =
+  blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react");
 ```
 
-It returns a object like this:
+The last parameter is the style of event names. It can be:
+
+- `"react"` --> onDragStart
+- `"lowercase"` --> dragstart
+- `"camelCase"` --> dragStart
+
+For example, in `"react"` style, it returns a object like this:
 
 ```js
 // dragCtx = blockContext.dragging
@@ -34,7 +41,7 @@ It returns a object like this:
 }
 ```
 
-If you are using React, you can simply add them like this:
+For React, you can simply add them like this:
 
 ```jsx {2-3}
 <div
@@ -45,9 +52,20 @@ If you are using React, you can simply add them like this:
   ...
 ```
 
-### 🧩 Slot Component
+For Vue, you can also generate listeners with `"lowercase"` style (important!), and use them like this:
 
-#### creating
+```xml {2}
+<div
+  class="myBlock"
+  draggable
+  v-on="theGeneratedListeners"
+>
+  ...
+```
+
+## 🧩 Slot Component
+
+### creating
 
 Write these callbacks:
 
@@ -61,7 +79,7 @@ Additionally, you can attach `this` of your component, to `slotHandler.ref`,
 so you will be able to access the component instance somewhere else later.
 
 ```js
-import { moveItemsInArray, moveItemsBetweenArrays } from "copyable-blocks";
+import { moveItemsInArray, moveItemsBetweenArrays } from "@lyonbot/interactive-blocks";
 
 const slotHandler = parent.createSlot({
   onCut: ...,
@@ -83,7 +101,7 @@ const slotHandler = parent.createSlot({
     // please mutate the array here
 
     // simplest example:
-    //   use util function from "copyable-blocks"
+    //   use util function from "interactive-blocks"
     moveItemsInArray(
       /* array: */ this.getTheArray(),
       /* fromIndexes: */ action.blocks.map(x => x.index),
@@ -98,7 +116,7 @@ const slotHandler = parent.createSlot({
     // please mutate the array here
 
     // simplest example:
-    //   use util function from "copyable-blocks"
+    //   use util function from "interactive-blocks"
     moveItemsBetweenArrays(
       /* fromArray: */ action.fromSlot.ref.getTheArray(),  // if you always attach `this` to `slotHandler.ref`
       /* fromIndexes: */ action.blocks.map(x => x.index),
@@ -111,15 +129,24 @@ const slotHandler = parent.createSlot({
 })
 ```
 
-#### handle DOM events
+### handle DOM events
 
 While creating, generate the default event listeners:
 
 ```js
-const theGeneratedListeners = blockContext.dragging.getDefaultSlotEventHandlers(slotHandler);
+const theGeneratedListeners = blockContext.dragging.getDefaultSlotEventHandlers(
+  slotHandler,
+  "react"
+);
 ```
 
-It returns a object like this:
+The last parameter is the style of event names. It can be:
+
+- `"react"` --> onDragStart
+- `"lowercase"` --> dragstart
+- `"camelCase"` --> dragStart
+
+For example, in `"react"` style, it returns a object like this:
 
 ```js
 // dragCtx = blockContext.dragging
@@ -149,7 +176,7 @@ It returns a object like this:
 }
 ```
 
-If you are using React, you can simply add them like this:
+For React, you can simply add them like this:
 
 ```jsx {2}
 <div
@@ -159,7 +186,17 @@ If you are using React, you can simply add them like this:
   ...
 ```
 
-#### visual feedbacks
+For Vue, you can also generate listeners with `"lowercase"` style (important!), and use them like this:
+
+```xml {2}
+<div
+  class="mySlot"
+  v-on="theGeneratedListeners"
+>
+  ...
+```
+
+### visual feedbacks
 
 When user drag and hover over slot / leave slot,
 `onDragHoverStatusChange` of slot will be called and `hoverChanged` event of BlockContext will be fired.
@@ -182,7 +219,7 @@ Suggestions:
      find the corresponding block and display a indicator before it.
   2. otherwise, put the indicator after all blocks of this slot.
 
-#### compute the position to insert
+### compute the position to insert
 
 By default:
 
