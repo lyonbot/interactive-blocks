@@ -1,6 +1,6 @@
 # @lyonbot/interactive-blocks
 
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/lyonbot/interactive-blocks/main) ![npm](https://img.shields.io/npm/v/@lyonbot/interactive-blocks)
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/lyonbot/interactive-blocks/main) ![npm](https://img.shields.io/npm/v/@lyonbot/interactive-blocks) ![npm bundle size (version)](https://img.shields.io/bundlephobia/min/@lyonbot/interactive-blocks/latest) ![npm bundle size (version)](https://img.shields.io/bundlephobia/minzip/@lyonbot/interactive-blocks/latest?label=min%2Bgzip) ![npm type definitions](https://img.shields.io/npm/types/@lyonbot/interactive-blocks)
 
 Make your Block and Slot components interactive!
 

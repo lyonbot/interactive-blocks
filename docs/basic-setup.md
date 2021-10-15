@@ -6,6 +6,11 @@ interactive-blocks works with most MV\* frameworks including React, Vue.
 npm i @lyonbot/interactive-blocks
 ```
 
+Or via CDN. global name: `InteractiveBlocks`
+
+- https://unpkg.com/@lyonbot/interactive-blocks
+- https://cdn.jsdelivr.net/npm/@lyonbot/interactive-blocks/dist/index.umd.js
+
 In this document, you will learn how to modify and enhance your Root Component, Slot Component and Block Component!
 
 Basically, all you need is:

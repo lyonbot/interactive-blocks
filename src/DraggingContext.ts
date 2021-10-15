@@ -2,7 +2,7 @@ import { BlockHandler } from "./BlockHandler";
 import { SlotHandler } from "./SlotHandler";
 import { BlockContext } from "./BlockContext";
 import { EventKeyStyle, getStyledEventHandlersLUT, throttle } from "./utils";
-import { TypedEmitter } from "tiny-typed-emitter";
+import { EventEmitter } from "./EventEmitter";
 import { IBMoveBetweenSlotsAction, IBMoveInSlotAction } from "./action";
 import { reduce } from "./itertools";
 
@@ -71,7 +71,7 @@ declare module "./SlotHandler" {
   }
 }
 
-export class DraggingContext extends TypedEmitter<DraggingContextEvents> {
+export class DraggingContext extends EventEmitter<DraggingContextEvents> {
   ctx: BlockContext;
 
   draggingBlocks: Array<BlockHandler> | undefined;

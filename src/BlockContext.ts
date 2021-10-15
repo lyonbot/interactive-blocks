@@ -1,4 +1,4 @@
-import { TypedEmitter } from "tiny-typed-emitter";
+import { EventEmitter } from "./EventEmitter";
 import { IBPasteAction, IBCutAction, IBClipboardData, isIBClipboardData, IBMoveInSlotAction, IBMoveBetweenSlotsAction } from "./action";
 import { BlockHandler, BlockInfo } from "./BlockHandler";
 import { DraggingContext } from "./DraggingContext";
@@ -60,7 +60,7 @@ const defaultOptions: Required<BlockContextOptions> = {
   multipleSelect: true,
 };
 
-export class BlockContext extends TypedEmitter<BlockContextEvents> {
+export class BlockContext extends EventEmitter<BlockContextEvents> {
   hiddenInput: HTMLTextAreaElement;
   private _lastActiveElement: HTMLElement | Element | null = null;
 

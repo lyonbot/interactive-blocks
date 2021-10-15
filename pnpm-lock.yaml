@@ -4,26 +4,18 @@ specifiers:
   '@typescript-eslint/eslint-plugin': ^4.31.2
   '@typescript-eslint/parser': ^4.31.2
   eslint: ^7.32.0
-  eventemitter3: ^4.0.7
-  lodash.debounce: ^4.0.8
   microbundle: ^0.13.3
   npm-run-all: ^4.1.5
   preact: ^10.5.14
   requirejs: ^2.3.6
   rimraf: ^3.0.2
-  tiny-typed-emitter: ^2.1.0
   typescript: ^4.4.3
   vite: ^2.6.5
-
-dependencies:
-  lodash.debounce: mirrors.tencent.com/lodash.debounce/4.0.8
-  tiny-typed-emitter: mirrors.tencent.com/tiny-typed-emitter/2.1.0
 
 devDependencies:
   '@typescript-eslint/eslint-plugin': mirrors.tencent.com/@typescript-eslint/eslint-plugin/4.32.0_1eacf2495a01e8a68ffa99482308e8ec
   '@typescript-eslint/parser': mirrors.tencent.com/@typescript-eslint/parser/4.32.0_eslint@7.32.0+typescript@4.4.3
   eslint: mirrors.tencent.com/eslint/7.32.0
-  eventemitter3: mirrors.tencent.com/eventemitter3/4.0.7
   microbundle: mirrors.tencent.com/microbundle/0.13.3
   npm-run-all: 4.1.5
   preact: mirrors.tencent.com/preact/10.5.14
@@ -3662,16 +3654,6 @@ packages:
     version: 1.0.0
     dev: true
 
-  mirrors.tencent.com/fsevents/2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/fsevents/-/fsevents-2.3.2.tgz}
-    name: fsevents
-    version: 2.3.2
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   mirrors.tencent.com/function-bind/1.1.1:
     resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/function-bind/-/function-bind-1.1.1.tgz}
     name: function-bind
@@ -4071,7 +4053,7 @@ packages:
     name: jsonfile
     version: 4.0.0
     optionalDependencies:
-      graceful-fs: mirrors.tencent.com/graceful-fs/4.2.8
+      graceful-fs: 4.2.8
     dev: true
 
   mirrors.tencent.com/kleur/4.1.4:
@@ -4140,6 +4122,7 @@ packages:
     resolution: {integrity: sha1-gteb/zCmfEAF/9XiUVMArZyk168=, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/lodash.debounce/-/lodash.debounce-4.0.8.tgz}
     name: lodash.debounce
     version: 4.0.8
+    dev: true
 
   mirrors.tencent.com/lodash.memoize/4.1.2:
     resolution: {integrity: sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/lodash.memoize/-/lodash.memoize-4.1.2.tgz}
@@ -5305,7 +5288,7 @@ packages:
     engines: {node: '>=10.0.0'}
     hasBin: true
     optionalDependencies:
-      fsevents: mirrors.tencent.com/fsevents/2.3.2
+      fsevents: 2.3.2
     dev: true
 
   mirrors.tencent.com/run-parallel/1.2.0:
@@ -5613,12 +5596,6 @@ packages:
       globalyzer: 0.1.0
       globrex: mirrors.tencent.com/globrex/0.1.2
     dev: true
-
-  mirrors.tencent.com/tiny-typed-emitter/2.1.0:
-    resolution: {integrity: sha512-qVtvMxeXbVej0cQWKqVSSAHmKZEHAvxdF8HEUBFWts8h+xEo5m/lEiPakuyZ3BnCBjOD8i24kzNOiOLLgsSxhA==, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/tiny-typed-emitter/-/tiny-typed-emitter-2.1.0.tgz}
-    name: tiny-typed-emitter
-    version: 2.1.0
-    dev: false
 
   mirrors.tencent.com/to-fast-properties/2.0.0:
     resolution: {integrity: sha1-3F5pjL0HkmW8c+A3doGk5Og/YW4=, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/to-fast-properties/-/to-fast-properties-2.0.0.tgz}

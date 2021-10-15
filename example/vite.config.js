@@ -7,7 +7,6 @@ export default {
   base: "./",
   resolve: {
     alias: {
-      "events": "eventemitter3",
       "@lyonbot/interactive-blocks": path.resolve(__dirname, ".."),
     },
   },
