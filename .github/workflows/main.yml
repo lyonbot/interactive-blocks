@@ -25,14 +25,15 @@ jobs:
 
     - name: Build
       run: |
-        npx pnpm install
+        npm install
         npm run build
 
     - name: Make Site
       run: |
         rm -rf site || true
-        cp ./example/dist ./site
-        cp ./docs ./site/
+        cp -r ./example/dist ./site
+        cp -r ./docs ./site/
+        touch ./site/.nojekyll
 
     - name: Publish to GitHub Pages
       uses: tsunematsu21/actions-publish-gh-pages@v1.0.2
