@@ -73,3 +73,34 @@ export const IBMoveBetweenSlotsAction = actionClass<{
 }>();
 
 export type IBAction = IBPasteAction | IBCutAction | IBMoveInSlotAction | IBMoveBetweenSlotsAction;
+
+export type IBBlockDragStartAction = InstanceType<typeof IBBlockDragStartAction>;
+export const IBBlockDragStartAction = actionClass<{
+  readonly type: "blockDragStart";
+  readonly ctx: BlockContext;
+  /** all selected blocks that will be dragged */
+  readonly blocks: readonly BlockHandler[];
+  /** the current block which fires dragStart event */
+  readonly currentBlock: BlockHandler;
+  readonly event: DragEvent;
+  readonly dataTransfer: DataTransfer;
+
+  /** text content that writes to the dataTransfer. can be updated here. */
+  text: string;
+}>();
+
+export type IBSlotBeforeDropAction = InstanceType<typeof IBSlotBeforeDropAction>;
+export const IBSlotBeforeDropAction = actionClass<{
+  readonly type: "slotBeforeDrop";
+  readonly ctx: BlockContext;
+  readonly slot: SlotHandler;
+  readonly indexToDrop: number;
+
+  readonly isDraggingFromCurrentCtx: boolean;
+  /** if drag source is from current BlockContext, this will be the array of current dragging blocks */
+  readonly draggingBlocks?: readonly BlockHandler[];
+
+  readonly event: DragEvent;
+  readonly dropEffect: "none" | "copy" | "link" | "move";
+  readonly dataTransfer: DataTransfer;
+}>();

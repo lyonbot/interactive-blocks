@@ -3,9 +3,11 @@ import { SlotHandler } from "./SlotHandler";
 import { BlockContext } from "./BlockContext";
 import { EventKeyStyle, getStyledEventHandlersLUT, throttle } from "./utils";
 import { EventEmitter } from "./EventEmitter";
-import { IBMoveBetweenSlotsAction, IBMoveInSlotAction } from "./action";
+import { IBMoveBetweenSlotsAction, IBMoveInSlotAction, IBSlotBeforeDropAction } from "./action";
 import { reduce } from "./itertools";
+import { IBBlockDragStartAction } from "./action";
 
+const isWebKit = "webkitRequestAnimationFrame" in window;
 const MIME_CTX_UUID = "x-block-context/uuid";
 
 const multipleSelectDragImage = document.createElement("div");
@@ -14,6 +16,11 @@ multipleSelectDragImage.style.cssText = "position:fixed;pointer-events:none;left
 export interface DraggingContextEvents {
   /** fires when one of `hoveringSlot`, `hoveringBlock` or `isHovering` changes */
   hoverChanged(ctx: BlockContext): void;
+
+  /** fires when start dragging a block */
+  blockDragStart(action: IBBlockDragStartAction): void;
+
+  slotBeforeDrop(action: IBSlotBeforeDropAction): void;
 }
 
 export interface ComputeIndexToDropRequest {
@@ -25,10 +32,12 @@ export interface ComputeIndexToDropRequest {
 
   ctx: BlockContext;
   slot: SlotHandler;
+  isDraggingFromCurrentCtx: boolean;
   /** if drag source is from current BlockContext, this will be the array of current dragging blocks */
   draggingBlocks?: readonly BlockHandler[];
   /** the original dataTransfer object from DragEvent */
   dataTransfer: DataTransfer | null;
+  dropEffect: "none" | "copy" | "link" | "move";
 }
 
 declare module "./SlotHandler" {
@@ -71,6 +80,12 @@ declare module "./SlotHandler" {
   }
 }
 
+declare module "./BlockHandler" {
+  interface BlockInfo {
+    onDragStart?(action: IBBlockDragStartAction): void;
+  }
+}
+
 export class DraggingContext extends EventEmitter<DraggingContextEvents> {
   ctx: BlockContext;
 
@@ -80,6 +95,8 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
   isHovering = false;
   hoveringSlot: SlotHandler | undefined;
   hoveringBlock: BlockHandler | undefined;
+  /** available when isHovering */
+  dropEffect?: "none" | "copy" | "link" | "move";
 
   constructor(ctx: BlockContext) {
     super();
@@ -144,26 +161,44 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
     if (!dataTransfer) return;
 
     if (!this.ctx.activeBlocks.has(block)) this.ctx.addBlockToSelection(block, "none");
-    if (this.ctx.activeBlocks.size > 1) {
+
+    const text = this.ctx.getTextForClipboard();
+    if (!text) return;
+
+    const blocks = Array.from(this.ctx.activeBlocks);
+    const action = new IBBlockDragStartAction({
+      type: "blockDragStart",
+      text,
+      blocks,
+      ctx: this.ctx,
+      currentBlock: block,
+      dataTransfer,
+      event: ev,
+    });
+
+    block.info.onDragStart?.(action);
+    this.emit("blockDragStart", action);
+    if (action.returnValue === false) return;  // prevented
+
+    // -----------------
+    // start process stuff!
+
+    ev.stopPropagation();
+
+    dataTransfer.setData("text/plain", action.text);
+    dataTransfer.setData(MIME_CTX_UUID, this.ctx.uuid);
+    if (blocks.length > 1) {
       document.body.appendChild(multipleSelectDragImage);
       multipleSelectDragImage.style.left = `${ev.clientX}px`;
       multipleSelectDragImage.style.top = `${ev.clientY}px`;
       setTimeout(() => multipleSelectDragImage.remove(), 100);
 
-      multipleSelectDragImage.textContent = `${this.ctx.activeBlocks.size} items`;
-      ev.dataTransfer.setDragImage(multipleSelectDragImage, multipleSelectDragImage.offsetWidth / 2, multipleSelectDragImage.offsetHeight / 2);
+      multipleSelectDragImage.textContent = `${blocks.length} items`;
+      dataTransfer.setDragImage(multipleSelectDragImage, multipleSelectDragImage.offsetWidth / 2, multipleSelectDragImage.offsetHeight / 2);
     }
 
-    ev.stopPropagation();
-
-    const text = this.ctx.getTextForClipboard();
-    if (!text) return;
-
-    dataTransfer.setData("text/plain", text);
-    dataTransfer.setData(MIME_CTX_UUID, this.ctx.uuid);
-
-    this.draggingBlocks = Array.from(this.ctx.activeBlocks);
     const slot = this.ctx.slotOfActiveBlocks;
+    this.draggingBlocks = blocks;
     this.slotOfDraggingBlocks = slot || void 0;
     if (slot) {
       this.setHoveringSlot(slot, block.index);
@@ -230,12 +265,34 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
     const indexToDrop = this.computeIndexToDrop(slot, ev);
     if (indexToDrop === false) return; // not droppable
 
-    this.setHoveringSlot(slot, indexToDrop);
-    this.setHoveringSlot.flush();
-
-    const dropEffect = ev.dataTransfer?.dropEffect;
+    const dropEffect = this.dropEffect!;
     const blocks = this.draggingBlocks;
     const ctx = this.ctx;
+
+    // -------------------
+
+    const beforeDropAction = new IBSlotBeforeDropAction({
+      type: "slotBeforeDrop",
+      ctx,
+      slot,
+      dropEffect,
+      dataTransfer: ev.dataTransfer!,
+      event: ev,
+      indexToDrop,
+      isDraggingFromCurrentCtx: !!blocks,
+      draggingBlocks: blocks,
+    });
+    this.emit("slotBeforeDrop", beforeDropAction);
+    if (beforeDropAction.returnValue === false) {
+      this.setHoveringSlot(void 0);
+      this.setHoveringSlot.flush();
+      return;
+    }
+
+    // -------------------
+
+    this.setHoveringSlot(slot, indexToDrop);
+    this.setHoveringSlot.flush();
 
     if (!blocks || dropEffect === "copy") {
       // drop from outside, or is copying
@@ -311,18 +368,29 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
   }
 
   /**
+   * side effect: update this.dropEffect
+   *
    * @return false means not droppable. otherwise a number is returned.
    */
   computeIndexToDrop(slot: SlotHandler, ev: DragEvent): false | number {
+    let origDropEffect = ev.dataTransfer!.dropEffect;
+    // deal with chromium bug: dropEffect is incorrect
+    if (origDropEffect === "none" && isWebKit) origDropEffect = (ev.ctrlKey || ev.altKey) ? "copy" : "move";
+    this.dropEffect = origDropEffect;
+
     // not droppable? return false
-    if (this.draggingBlocks?.some(block => slot.isDescendantOfBlock(block))) return false;
+    if (this.dropEffect !== "copy" && this.draggingBlocks?.some(block => slot.isDescendantOfBlock(block))) {
+      return false;
+    }
 
     // maybe droppable, compute it
     const fnAns = slot.info.computeIndexToDrop?.({
       ctx: this.ctx,
       slot,
+      isDraggingFromCurrentCtx: !!this.draggingBlocks,
       draggingBlocks: this.draggingBlocks,
       dataTransfer: ev.dataTransfer,
+      dropEffect: this.dropEffect!,
 
       currentTarget: ev.currentTarget as HTMLElement,
       clientX: ev.clientX,
