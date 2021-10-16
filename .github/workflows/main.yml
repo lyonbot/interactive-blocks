@@ -28,11 +28,17 @@ jobs:
         npx pnpm install
         npm run build
 
+    - name: Make Site
+      run: |
+        rm -rf site || true
+        cp ./example/dist ./site
+        cp ./docs ./site/
+
     - name: Publish to GitHub Pages
       uses: tsunematsu21/actions-publish-gh-pages@v1.0.2
       if: ${{ github.event_name == 'push' }}
       continue-on-error: true
       with:
-        dir: ./example/dist
+        dir: ./site
         branch: gh-pages
         token: ${{ secrets.ACCESS_TOKEN }}

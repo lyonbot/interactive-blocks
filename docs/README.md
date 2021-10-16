@@ -4,7 +4,7 @@
 
 Make your Block and Slot components interactive! Works with Vue, React and any MV* framework.
 
-[ [▶️ Try the Demo](https://lyonbot.github.io/interactive-blocks/) ] [ [📁 View on GitHub](https://github.com/lyonbot/interactive-blocks) ] [ [📖 Document](https://lyonbot.github.io/interactive-blocks/docs/) ]
+[ <a href="../">▶️ Try the Demo</a> ] [ [📁 View on GitHub](https://github.com/lyonbot/interactive-blocks) ] [ [📖 Document](https://lyonbot.github.io/interactive-blocks/docs/) ]
 
 ## How Interactive?
 
@@ -23,10 +23,6 @@ These keyboard shortcuts are supported!
 
 ## How to Integrate
 
-This lib works with any framework, including React and Vue. Example is written with preact and works with React too.
+This lib works with any framework, including React and Vue. 
 
-[📖 Read document with Docsify](https://lyonbot.github.io/interactive-blocks/docs/)
-
-1. [Basic Setup](./docs/basic-setup.md)
-
-2. [Drag and Drop](./docs/drag-and-drop.md) -- read "basic setup" first
+Please start with [Basic Setup](./basic-setup.md)

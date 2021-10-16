@@ -4,7 +4,7 @@ Read [Basic Setup](./basic-setup.md) before this!
 
 To support drag and drop, modify your Block Component and Slot Component.
 
-## To-do List
+## 🎯 To-do List
 
 - **Root Component**
   

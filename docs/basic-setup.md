@@ -22,9 +22,9 @@ After setup, your components will get these interactive abilities:
 
 To support drag-and-drop, extra effort is required. [Please refer to this _later_](./drag-and-drop.md)
 
-## To-do List
+## 🎯 To-do List
 
-- **Root Component**
+- **🧩 Root Component**
 
   - **create**
 
@@ -42,7 +42,7 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
       1. focused
       2. blurred
 
-- **Slot Component**
+- **🧩 Slot Component**
 
   - **create**
 
@@ -50,12 +50,13 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
     - create a **SlotHandler** with custom `onCut` and `onPaste` implementations (examples provided below)
     - (optional) attach a custom `ref`
 
-  - **beforeDestroy**
+  - **before destroy**
 
     - call `slotHandler.dispose()`
 
   - **render**
 
+    - `slotHandler` must be passed as `ownerSlot` to child blocks.
     - add `tabIndex="-1"`
     - add `pointerup` event listener
     - add active (aka. selected) className when `slotHandler.isActive`
@@ -68,7 +69,7 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
       2. active, but context is NOT focused
       3. active and focused
 
-- **Block Component**
+- **🧩 Block Component**
 
   - **create**
 
@@ -76,12 +77,13 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
     - create a **BlockHandler** with custom `data` and `index` getter functions
     - (optional) attach a custom `ref`
 
-  - **beforeDestroy**
+  - **before destroy**
 
     - call `blockHandler.dispose()`
 
   - **render**
 
+    - `blockHandler` must be passed as `ownerBlock` to child slots.
     - add `tabIndex="-1"`
     - add `pointerup` event listener (see below)
     - add active (aka. selected) className when `blockHandler.isActive`
@@ -150,7 +152,7 @@ const blockContext = new BlockContext();
 
 `blockContext`, aka `ctx`, is a _singleton_. Each block and slot inside `<App />`, shall be able to retrieve it.
 
-### beforeDestroy / componentWillUnmount
+### before destroy
 
 Once the component is about to be removed, call this:
 
@@ -184,9 +186,11 @@ In general, you don't need to listen `paste`, `cut` events of `blockContext` her
 
 Additionally, drag-and-drop will introduces some extra events, please read [drag-and-drop.md](./drag-and-drop.md) later.
 
-### hasFocus and keyboard shortcuts
+### `hasFocus` and keyboard shortcuts
 
-BlockContext handles keyboard and clipboard events via a hidden input (`blockContext.hiddenInput`). Therefore, keyboard shortcuts (`Ctrl+C`, `Ctrl+V`, arrow keys...) work only when **hiddenInput** is focused.
+BlockContext handles keyboard and clipboard events via a hidden input (`blockContext.hiddenInput`).
+
+Therefore, keyboard shortcuts (`Ctrl+C`, `Ctrl+V`, arrow keys...) work only when **hiddenInput** is focused.
 
 - To check whether it is focused, read `blockContext.hasFocus`.
 
@@ -248,6 +252,8 @@ const slotHandler = parent.createSlot({
 
 You shall implement how cutting / pasting blocks works via `onCut`, `onPaste`.
 
+Example code is presented above.
+
 #### Attach a Ref
 
 Additionally, you can attach `this` of your component, to `slotHandler.ref`,
@@ -260,7 +266,7 @@ const slotHandler = parent.createSlot({
 });
 ```
 
-### beforeDestroy / componentWillUnmount
+### before destroy
 
 Dispose the handler when your component is removed.
 
@@ -268,9 +274,13 @@ Dispose the handler when your component is removed.
 slotHandler.dispose();
 ```
 
-### handing DOM events
+### render & DOM events
 
-Add `pointerup` event handler like this
+0. `slotHandler` must be passed as `ownerSlot` to child blocks.
+
+1. Add `pointerup` event handler
+
+2. In the HTML template, `tabIndex` must be set to `-1`
 
 ```js
 function handlePointerUp(ev) {
@@ -283,8 +293,6 @@ function handlePointerUp(ev) {
 }
 ```
 
-In the HTML template, `tabIndex` must be set to `-1` so that we can correctly handle users' clicks and transfer the focus point to our keyboard shortcut handler (a hidden input box).
-
 ```xml
 <div onPointerUp={handlePointerUp} tabIndex="-1">
   TODO: render children here.
@@ -293,9 +301,10 @@ In the HTML template, `tabIndex` must be set to `-1` so that we can correctly ha
 </div>
 ```
 
-### render child blocks
+The `tabIndex` makes your div focusable. Once user clicks it, the focus point can be detected and transfer to our keyboard event handler (hiddenInput).
 
-`slotHandler` must be passed as `ownerSlot` to child blocks.
+If you need to render child blocks, `slotHandler` must be passed as `ownerSlot` to them!
+
 
 ### visual feedbacks
 
@@ -387,7 +396,7 @@ const blockHandler = parent.createBlock({
 });
 ```
 
-### beforeDestroy / componentWillUnmount
+### before destroy
 
 Dispose the handler when your component is removed.
 
@@ -395,9 +404,13 @@ Dispose the handler when your component is removed.
 blockHandler.dispose();
 ```
 
-### handing DOM events
+### render & DOM events
 
-Add `pointerup` event handler like this
+0. `blockHandler` must be passed as `ownerBlock` to child slots
+
+1. Add `pointerup` event handler
+
+2. In the HTML template, `tabIndex` must be set to `-1`
 
 ```js
 function handlePointerUp(ev) {
@@ -410,8 +423,6 @@ function handlePointerUp(ev) {
 }
 ```
 
-In the HTML template, `tabIndex` must be set to `-1` so that we can correctly handle users' clicks and transfer the focus point to our keyboard shortcut handler (a hidden input box).
-
 ```xml
 <div onPointerUp={handlePointerUp} tabIndex="-1">
 
@@ -422,9 +433,9 @@ In the HTML template, `tabIndex` must be set to `-1` so that we can correctly ha
 </div>
 ```
 
-### render child slots
+In the HTML template, `tabIndex` must be set to `-1` so that we can correctly handle users' clicks and transfer the focus point to our keyboard shortcut handler (a hidden input box).
 
-`blockHandler` must be passed as `ownerBlock` to child slots, when rendering children.
+If you need to render child slots, `blockHandler` must be passed as `ownerBlock` to them!
 
 ### visual feedbacks
 

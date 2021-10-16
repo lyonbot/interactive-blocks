@@ -39,11 +39,12 @@ export const App = function () {
   </BlockContextProvider>;
 };
 
-const githubUrl = "https://github.com/lyonbot/interactive-blocks#readme";
+const githubUrl = "https://github.com/lyonbot/interactive-blocks";
+const docsUrl = "https://lyonbot.github.io/interactive-blocks/docs/";
 
 const Header = <>
   <h2>InteractiveBlocks</h2>
   <p>Just proving the abilities with shabby Slot and Block components here.</p>
-  <p>Learn how to integrate with your own components? <a href={githubUrl} target="_blank">Read the guide on GitHub</a></p>
+  <p>Learn how to integrate with your own components? <a href={docsUrl} target="_blank">Read the Document &raquo;</a></p>
   <a className="demoPage-forkMe" href={githubUrl} target="_blank">Fork me on GitHub</a>
 </>;
