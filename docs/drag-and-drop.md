@@ -2,13 +2,84 @@
 
 Read [Basic Setup](./basic-setup.md) before this!
 
-To support drag and drop, modify your Block Component and Slot Component:
+To support drag and drop, modify your Block Component and Slot Component.
+
+## To-do List
+
+- **Root Component**
+  
+  - basically nothing to do
+  - (optional) add event listeners to DraggingContext
+
+- **Block Component**
+
+  - add event listeners to DOM element
+  - (optional) implement `onDragStart` while creating
+
+- **Slot Component**
+
+  - implement `onMoveInSlot` and `onMoveToThisSlot` while creating (examples provided below)
+  - add event listeners to DOM element
+  - update visual feedbacks when `onDragHoverStatusChange` called
+  - (optional) provide your own `computeIndexToDrop` implementation while creating
+
+## 🧩 Root Component
+
+### DraggingContext
+
+`blockContext.dragging` is the DraggingContext, which stores the drag / drop state and emits events.
+
+#### Drag state
+
+- `draggingBlocks?`: Array of BlockHandler, if user is dragging and the drag source is this BlockContext.
+
+#### Hover & Drop state
+
+- `isHovering`: boolean
+- `hoveringSlot?`: SlotHandler
+- `hoveringBlock?`: BlockHandler
+- `dropEffect?`: "move" | "copy", based on user action.
+
+#### events
+
+You can add listeners like this:
+
+```js
+blockContext.dragging.on("hoverChanged", () => {
+  // ...
+});
+```
+
+- `hoverChanged()` fires when state variables related to `hover` changes
+
+- `blockDragStart(action)`
+
+  - the action info contains `blocks`, `currentBlock` and more
+  - you can setData via `action.dataTransfer.setData(...)`
+  - call `action.preventDefault()` to prevent dragging
+  - See **_"creating"_** of _Block Component_ chapter below
+
+- `beforeDropAction(action)`
+
+  - the action info contains `slot`, `indexToDrop` and more
+  - call `action.preventDefault()` to prevent dropping
+
+<br/>
 
 ## 🧩 Block Component
 
 ### creating
 
-no extra work to do.
+No extra work to do.
+
+If you want, add some of these optional callbacks, while creating BlockHandler:
+
+- `onDragStart(action)`
+
+  - `blocks` contains all selected blocks to be dragged
+  - `currentBlock` is the block that triggered dragStart event. It is included in `blocks`
+  - you can setData via `action.dataTransfer.setData(...)`
+  - call `action.preventDefault()` to prevent dragging this block.
 
 ### handle DOM events
 
@@ -62,6 +133,8 @@ For Vue, you can also generate listeners with `"lowercase"` style (important!), 
 >
   ...
 ```
+
+<br/>
 
 ## 🧩 Slot Component
 
@@ -227,7 +300,7 @@ By default:
   the `indexToDrop` will be the block's index and blocks will be inserted before it.
 - otherwise, `indexToDrop` will be `0` for empty slot, or `(largestIndexOfBlocks + 1)` depends on slots items.
 
-You can provide `computeIndexToDrop(request)` while creating SlotHandler, to override the defaults.
+While creating SlotHandler, you can provide `computeIndexToDrop(request)` to override the default behavior.
 
 The function you provide, shall check whether this slot is droppable and compute the insert position.
 
@@ -243,5 +316,7 @@ The param `request` contains:
 - `currentTarget` -- the HTMLElement
 - `ctx` -- BlockContext
 - `slot` -- SlotHandler
-- `draggingBlocks?` -- array of BlockHandlers, if drag source is current BlockContext
-- `dataTransfer?` -- the original dataTransfer object from DragEvent
+- `isDraggingFromCurrentCtx` -- boolean, whether the drag source is current BlockContext
+- `draggingBlocks?` -- array of BlockHandlers, available when drag source is current BlockContext
+- `dataTransfer?` -- the original DataTransfer object from DragEvent
+- `dropEffect` -- "none" | "copy" | "link" | "move"

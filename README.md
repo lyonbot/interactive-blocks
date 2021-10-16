@@ -29,4 +29,4 @@ If you cannot open the documents below, please try the links on https://github.c
 
 1. [Basic Setup](./docs/basic-setup.md)
 
-2. [Drag and Drop](./docs/basic-setup.md) -- addition
+2. [Drag and Drop](./docs/drag-and-drop.md) -- read "basic setup" first

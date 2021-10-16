@@ -13,15 +13,6 @@ Or via CDN. global name: `InteractiveBlocks`
 
 In this document, you will learn how to modify and enhance your Root Component, Slot Component and Block Component!
 
-Basically, all you need is:
-
-1. create a BlockContext / SlotHandler / BlockHandler when components created.
-   - define slot / component behaviors
-   - (basically you don't have to) add event listeners
-2. `dispose` the context / handler before components destroy.
-3. simply modify components' JSX / DOM template.
-4. add some visual feedbacks via CSS.
-
 After setup, your components will get these interactive abilities:
 
 - (multiple) selectable!
@@ -29,7 +20,80 @@ After setup, your components will get these interactive abilities:
 - keyboard shortcuts!
 - [see README](../README.md)
 
-Drag-and-drop is not supported here. To support it, [read this _later_](./drag-and-drop.md)
+To support drag-and-drop, extra effort is required. [Please refer to this _later_](./drag-and-drop.md)
+
+## To-do List
+
+- **Root Component**
+
+  - **create**
+
+    - create a BlockContext
+    - know that keyboard events are processed by a hiddenInput
+    - handle `blur` and `focus` event and change visual feedbacks
+
+  - **while using**
+
+    - call `blockContext.focus()` if need
+
+  - **css and visual feedbacks**
+
+    - two status based on `blockContext.hasFocus`:
+      1. focused
+      2. blurred
+
+- **Slot Component**
+
+  - **create**
+
+    - inherit `blockContext` and (if exists) `ownerBlock`
+    - create a **SlotHandler** with custom `onCut` and `onPaste` implementations (examples provided below)
+    - (optional) attach a custom `ref`
+
+  - **beforeDestroy**
+
+    - call `slotHandler.dispose()`
+
+  - **render**
+
+    - add `tabIndex="-1"`
+    - add `pointerup` event listener
+    - add active (aka. selected) className when `slotHandler.isActive`
+
+  - **css and visual feedbacks**
+
+    - three status based on `slotHandler.isActive` and blockContext:
+
+      1. inactive
+      2. active, but context is NOT focused
+      3. active and focused
+
+- **Block Component**
+
+  - **create**
+
+    - inherit `blockContext` and (if exists) `ownerSlot`
+    - create a **BlockHandler** with custom `data` and `index` getter functions
+    - (optional) attach a custom `ref`
+
+  - **beforeDestroy**
+
+    - call `blockHandler.dispose()`
+
+  - **render**
+
+    - add `tabIndex="-1"`
+    - add `pointerup` event listener (see below)
+    - add active (aka. selected) className when `blockHandler.isActive`
+    - (optional) display `blockHandler.activeNumber` for multiple selection
+
+  - **css and visual feedbacks**
+
+    - three status based on `blockHandler.isActive` and blockContext:
+
+      1. inactive
+      2. active, but context is NOT focused
+      3. active and focused
 
 ## 🤔 The correct way to pass data
 
@@ -303,7 +367,7 @@ const blockHandler = parent.createBlock({
 
 #### data and index
 
-You shall provide two **functions**: `data` and `index`. They will be called when:
+You shall provide two **getter functions**: `data` and `index`. They will be called when:
 
 - You access `blockHandler.data` or `blockHandler.index` (they are computed property)
 - Users select
