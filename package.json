@@ -1,7 +1,7 @@
 {
   "name": "@lyonbot/interactive-blocks",
   "version": "1.0.5",
-  "description": "Make your Block and Slot components interactive, (multiple-)selectable, copyable, draggable.",
+  "description": "Make interactive selectable, drag-and-drop, copy-and-paste ready, Block and Slot components easily! Works with Vue, React and any MV* framework.",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
