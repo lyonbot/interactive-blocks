@@ -127,8 +127,11 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
       switch (ev.code) {
         case "KeyA":
           if (opts.multipleSelect && (ev.ctrlKey || ev.metaKey)) {
-            this.activeBlocks.clear();
-            Array.from(this.slotOfActiveBlocks?.items || []).sort((a, b) => a.index - b.index).forEach(block => this.activeBlocks.add(block));
+            this.activeBlocks = new Set(
+              Array
+                .from(this.slotOfActiveBlocks?.items || [])
+                .sort((a, b) => a.index - b.index)
+            );
             this.syncActiveElementStatus();
           }
           break;
@@ -479,20 +482,66 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
     if (!this.options.multipleSelect) multipleSelect = "none";
 
+    if (multipleSelect === "none") {
+      // single selection
+      this.activeBlocks.clear();
+      this.activeBlocks.add(currBlock);
+    } else {
+      // multipleSelect, ensure every active block is in same slot.
+      const headBlock = head(this.activeBlocks);
+      if (headBlock && headBlock.ownerSlot !== currBlock.ownerSlot) {
+        // they are not in same slot
+        // find the nearest common slot
+
+        const ownerSlotStackOfHead = [] as SlotHandler[];
+        for (let i: BlockHandler | null = headBlock; i && i.ownerSlot;) {
+          ownerSlotStackOfHead.push(i.ownerSlot);
+          i = i.ownerSlot.ownerBlock;
+        }
+
+        let depth = -1;
+        for (let i: BlockHandler | null = currBlock; i && i.ownerSlot; i = i.ownerSlot.ownerBlock) {
+          if ((depth = ownerSlotStackOfHead.indexOf(i.ownerSlot)) !== -1) {
+            currBlock = i;  // find the common slot, and currBlock shall be itself or its ancestor
+            break;
+          }
+        }
+
+        if (depth === -1) {
+          // no common slot found
+          this.activeBlocks.clear();
+        } else if (depth > 0) {
+          // found common slot (and currBlock might has been replaced)
+          // however, because depth > 0, activeBlocks must be replaced to their ancestor,
+          // so that we can align blocks to the same ownerSlot
+          this.activeBlocks = new Set(Array.from(this.activeBlocks, b => {
+            for (let j = depth; j > 0; j--, b = b.ownerSlot!.ownerBlock!);
+            return b;
+          }));
+        }
+      }
+
+      // not currBlock and activeBlocks are updated
+      // we just use the correct slot as activeSlot
+      this.activeSlot = currBlock.ownerSlot || null;
+
+      // special case: if the ownerSlot is null (anonymous root slot)
+      // we cannot make continuous selection
+      // and `multipleSelect` shall be fixed to "ctrl"
+      if (!this.activeSlot) multipleSelect = "ctrl";
+    }
+
     if (multipleSelect === "ctrl") {
       // discontinuous multiple-selection
-
-      // ensure that they're in the same slot
-      if (currBlock.ownerSlot !== this.slotOfActiveBlocks) this.activeBlocks.clear();
-
       this.activeBlocks.add(currBlock);
-      this.activeSlot = currBlock.ownerSlot || null;
-    } else if (multipleSelect === "shift") {
+    }
+
+    if (multipleSelect === "shift") {
       // continuous selection
 
-      const slot = currBlock.ownerSlot;
-      // ensure that they're in the same slot
-      if (slot !== this.slotOfActiveBlocks) this.activeBlocks.clear();
+      // at this moment slot is guranteed as not-null
+      // because multipleSelect has been fixed above
+      const slot = this.activeSlot!;
 
       const currIndex = currBlock.index;
       let minIndex = currIndex, maxIndex = currIndex;
@@ -503,24 +552,17 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
         if (maxIndex < index) maxIndex = index;
       });
 
-      if (slot) {
-        // make a continuous selection
-        this.activeBlocks.clear();
-        slot.items.forEach(block => {
-          const index = block.index;
-          if (index >= minIndex && index <= maxIndex) this.activeBlocks.add(block);
-        });
-        this.activeSlot = slot;
-      } else {
-        // anonymous root slot
-        this.activeBlocks.add(currBlock);
-        this.activeSlot = null;
-      }
+      // make a continuous selection
 
-    } else {
-      // single selection
-      this.activeBlocks.clear();
-      this.activeBlocks.add(currBlock);
+      this.activeBlocks = new Set(
+        Array
+          .from(slot.items)
+          .filter(block => {
+            const index = block.index;
+            return (index >= minIndex && index <= maxIndex);
+          })
+          .sort((a, b) => a.index - b.index)
+      );
     }
 
     this.syncActiveElementStatus();
@@ -549,7 +591,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
       }
     } else {
       this.activeSlot = currSlot || null;
-      this.addBlockToSelection(currBlock, (ev.ctrlKey || ev.metaKey) ? "ctrl" : (ev.shiftKey ? "shift" : "none"));
+      this.addBlockToSelection(currBlock, ev);
     }
 
     this.syncActiveElementStatus();
