@@ -9,6 +9,7 @@ import { IBBlockDragStartAction } from "./action";
 
 const isWebKit = "webkitRequestAnimationFrame" in window;
 const MIME_CTX_UUID = "x-block-context/uuid";
+const MIME_CTX_BRAND_LEADING = "x-block-context/brand-";
 
 const multipleSelectDragImage = document.createElement("div");
 multipleSelectDragImage.style.cssText = "position:fixed;pointer-events:none;left:0;top:0;background: #FFF; border: 1px solid #000; padding: 4px 8px;transform:translate(-50%, -50%)";
@@ -187,6 +188,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
 
     dataTransfer.setData("text/plain", action.text);
     dataTransfer.setData(MIME_CTX_UUID, this.ctx.uuid);
+    dataTransfer.setData(`${MIME_CTX_BRAND_LEADING}${this.ctx.brand}`, "true");
     if (blocks.length > 1) {
       document.body.appendChild(multipleSelectDragImage);
       multipleSelectDragImage.style.left = `${ev.clientX}px`;
@@ -254,6 +256,12 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
   }
 
   handleSlotDragOver(slot: SlotHandler, ev: DragEvent) {
+    // if dragSource is a BlockContext, check the brand of BlockContext
+    if (
+      ev.dataTransfer?.types.includes(MIME_CTX_UUID) &&
+      !ev.dataTransfer.types.includes(`${MIME_CTX_BRAND_LEADING}${this.ctx.brand}`)
+    ) return false;
+
     const indexToDrop = this.computeIndexToDrop(slot, ev);
     if (indexToDrop === false) return false; // not droppable
 

@@ -23,6 +23,15 @@ export interface BlockContextEvents {
 
 export interface BlockContextOptions {
   /**
+   * optional, a string to distinguish BlockContexts of different scenario usage.
+   *
+   * for example: "files", "workflow", "tasks", "dependencies"
+   *
+   * between BlockContexts with different brand, data cannot be pasted / dragged
+   */
+  brand?: string;
+
+  /**
    * whether unset all active blocks & slot's `active` state when click nothing on the page
    *
    * default is true
@@ -54,6 +63,7 @@ export interface BlockContextOptions {
 }
 
 const defaultOptions: Required<BlockContextOptions> = {
+  brand: "",
   deactivateHandlersWhenBlur: true,
   navigateWithArrowKeys: true,
   handleDeleteKey: true,
@@ -67,12 +77,14 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   hasFocus = false;
   options: Required<BlockContextOptions>;
 
+  brand = "";
   uuid = `${Date.now().toString(36)}-${Math.random().toString(36)}`;
   dragging = new DraggingContext(this);
 
   constructor(options: BlockContextOptions = {}) {
     super();
     this.options = { ...defaultOptions, ...options };
+    this.brand = String(this.options.brand);
 
     document.addEventListener("pointerup", this.handleGlobalPointerUp, false);
 
@@ -188,6 +200,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   getTextForClipboard() {
     const data: IBClipboardData = {
       isIBClipboardData: true,
+      ibContextBrand: this.brand,
       ibContextUUID: this.uuid,
       blocksData: [],
     };
@@ -210,8 +223,8 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     document.execCommand("copy");
   }
 
-  pasteWithData(data: IBClipboardData, targetIndex?: number) {
-    if (!isIBClipboardData(data)) throw new Error("Invalid IBClipboardData");
+  pasteWithData(data: any, targetIndex?: number) {
+    if (!isIBClipboardData(data, this.brand)) throw new Error("Need a valid IBClipboardData object");
 
     const slot = this.activeSlot;
     if (!slot) return;
