@@ -152,6 +152,13 @@ const blockContext = new BlockContext();
 
 `blockContext`, aka `ctx`, is a _singleton_. Each block and slot inside `<App />`, shall be able to retrieve it.
 
+#### BlockContextOptions
+
+You can provide options like `new BlockContext({ ... })`. All options are described in TypeScript and your IDE shall be able to show the instructions with autocompletion.
+
+Special Notice: you may provide `brand: "xxx"` to distinguish the usage of this BlockContext.
+For example: "files", "tasks", "workflow", "dependencies". Data between differently branded BlockContexts is NOT sharable.
+
 ### before destroy
 
 Once the component is about to be removed, call this:
@@ -304,7 +311,6 @@ function handlePointerUp(ev) {
 The `tabIndex` makes your div focusable. Once user clicks it, the focus point can be detected and transfer to our keyboard event handler (hiddenInput).
 
 If you need to render child blocks, `slotHandler` must be passed as `ownerSlot` to them!
-
 
 ### visual feedbacks
 
