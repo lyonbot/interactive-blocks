@@ -16,6 +16,10 @@ export const App = function () {
   const blockContext = useMemo(() => new BlockContext(), []);
   useUnmount(() => blockContext.dispose());
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore -- for debugging
+    window.blockContext = blockContext;
+
     blockContext.on("focus", () => setHasFocus(true));
     blockContext.on("blur", () => setHasFocus(false));
     blockContext.on("paste", (action) => {

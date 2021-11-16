@@ -141,7 +141,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
           if (opts.multipleSelect && (ev.ctrlKey || ev.metaKey)) {
             this.activeBlocks = new Set(
               Array
-                .from(this.slotOfActiveBlocks?.items || [])
+                .from(this.slotOfActiveBlocks?.items || this.activeSlot?.items || [])
                 .sort((a, b) => a.index - b.index)
             );
             this.syncActiveElementStatus();
@@ -424,7 +424,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   private lastActiveBlocks?: Set<BlockHandler>;
 
   /**
-   * invoke this when `activeElements` is mutated!
+   * invoke this when `activeSlot` or `activeBlocks` are mutated!
    */
   syncActiveElementStatus() {
     let hasChanges = false;
@@ -599,6 +599,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
     if (!currBlock) {
       // nothing was clicked
+      this.activeSlot = currSlot || null;
       if (this.options.deactivateHandlersWhenBlur && this.activeBlocks.size > 0) {
         this.activeBlocks.clear();
       }
