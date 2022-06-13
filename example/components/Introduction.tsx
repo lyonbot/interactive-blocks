@@ -43,7 +43,7 @@ export const Introduction = () => {
       <li>Select multiple blocks with <kbd>Ctrl</kbd> or <kbd>Shift</kbd></li>
     </ul>
 
-    <h3>Current Store</h3>
+    <h3>Current Data</h3>
     <textarea class="demoPage-store" spellcheck={false} ref={textarea} onBlur={handleBlur} onInput={handleInput}></textarea>
   </div>;
 };

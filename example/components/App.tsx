@@ -30,14 +30,14 @@ export const App = function () {
   return <BlockContextProvider value={blockContext}>
     {Header}
     <div className={classnames("demoPage", hasFocus && "hasFocus")}>
+      <div className="demoPage-introductionArea">
+        <Introduction />
+      </div>
+
       <div className="demoPage-blockArea">
         <MySlot>
           {data.map((item, index) => <MyBlock key={index} index={index} item={item} />)}
         </MySlot>
-      </div>
-
-      <div className="demoPage-introductionArea">
-        <Introduction />
       </div>
     </div>
   </BlockContextProvider>;

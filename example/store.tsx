@@ -8,9 +8,9 @@ export interface MyDataItem {
 }
 
 const getDefaultValue = (): MyDataItem[] => [
-  { name: "aaa" },
-  { name: "bbb", children: [{ name: "b1" }, { name: "b2" }] },
-  { name: "ccc" },
+  { name: "🧩 Click to Pick" },
+  { name: "Drag Card into Fence 👇", children: [{ name: "🍬 Alice" }, { name: "🧸 Bob" }] },
+  { name: "⌨ Copy and Paste works too" },
 ];
 
 interface StoreAction {

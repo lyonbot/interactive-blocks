@@ -68,7 +68,7 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
       {
         (props.children as any)?.length > 0
           ? props.children
-          : <div className="mySlot-emptyPlaceholder">Nothing</div>
+          : <div className="mySlot-emptyPlaceholder">Empty</div>
       }
     </OwnerSlotProvider>
 
