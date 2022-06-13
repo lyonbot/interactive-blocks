@@ -1,6 +1,7 @@
 import type { BlockContext } from "./BlockContext";
 import type { SlotHandler, SlotInfo } from "./SlotHandler";
 import { getValueOf, ValueOrGetter } from "./ValueOrGetter";
+import { MultipleSelectType } from "./MultipleSelectType";
 
 export interface BlockInfo {
   index: ValueOrGetter<number>;
@@ -55,6 +56,39 @@ export class BlockHandler {
 
   handlePointerUp = () => this.ctx.handleBlockPointerUp(this, false);
   handlePointerUpCapture = () => this.ctx.handleBlockPointerUp(this, true);
+
+  /**
+   * select / active this block, without focusing
+   *
+   * @param multipleSelectType
+   * @see {@link BlockHandler.focus}
+   * @see {@link BlockContext.addBlockToSelection} - the underhood method
+   */
+  select(multipleSelectType?: MultipleSelectType) {
+    this.ctx.addBlockToSelection(this, multipleSelectType);
+  }
+
+  /**
+   * unselect this block, make `isActive` false
+   */
+  unselect() {
+    if (!this.isActive) return;
+
+    this.ctx.activeBlocks.delete(this);
+    this.ctx.syncActiveElementStatus();
+  }
+
+  /**
+   * select / active this block, and move the focus to this BlockContext
+   *
+   * @param multipleSelectType
+   * @see {@link BlockHandler.select}
+   * @see {@link BlockContext.addBlockToSelection} - the underhood method
+   */
+  focus(multipleSelectType?: MultipleSelectType) {
+    if (!this.isActive) this.select(multipleSelectType);
+    this.ctx.focus();
+  }
 
   constructor(ctx: BlockContext, ownerSlot: SlotHandler | null, info: BlockInfo) {
     this.ctx = ctx;
