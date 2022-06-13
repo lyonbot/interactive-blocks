@@ -55,6 +55,20 @@ export interface BlockContextOptions {
    * default is true
    */
   multipleSelect?: boolean;
+
+  /**
+   * default is `JSON.stringify(data)`
+   *
+   * @see {@link unserializeForClipboard}
+   */
+  serializeForClipboard?: (data: any) => string;
+
+  /**
+   * default is `JSON.parse(text)`
+   *
+   * @see {@link serializeForClipboard}
+   */
+  unserializeForClipboard?: (text: string) => any;
 }
 
 const defaultOptions: Required<BlockContextOptions> = {
@@ -63,6 +77,8 @@ const defaultOptions: Required<BlockContextOptions> = {
   navigateWithArrowKeys: true,
   handleDeleteKey: true,
   multipleSelect: true,
+  serializeForClipboard: (data: any) => JSON.stringify(data),
+  unserializeForClipboard: (text: string) => JSON.parse(text),
 };
 
 export class BlockContext extends EventEmitter<BlockContextEvents> {
@@ -90,7 +106,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     hiddenInput.ownerDocument.body.appendChild(hiddenInput);
 
     const populateClipboard = (ev: ClipboardEvent) => {
-      const text = this.getTextForClipboard();
+      const text = this.options.serializeForClipboard(this.dumpSelectedData());
       if (!text) return;
 
       ev.preventDefault();
@@ -113,7 +129,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
         const text = ev.clipboardData?.getData("text/plain");
         if (!text) return;
 
-        const data = JSON.parse(text);
+        const data = this.options.unserializeForClipboard(text);
         this.pasteWithData(data);
       } catch (err) {
         console.error("Failed to paste!", err);
@@ -188,11 +204,15 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   }
 
   /**
-   * prepare text to write to clipboard
+   * dump all active blocks' data, then you can transfer it via file / clipboard etc,
+   * and use it with {@link pasteWithData}
    *
+   * this will NOT delete the selected blocks. if you want to, call {@link deleteActiveBlocks}
+   *
+   * @see {@link pasteWithData}
    * @returns `undefined` if cannot copy. otherwise returns text
    */
-  getTextForClipboard() {
+  dumpSelectedData() {
     const data: IBClipboardData = {
       isIBClipboardData: true,
       ibContextBrand: this.brand,
@@ -207,7 +227,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     // nothing to copy?
     if (data.blocksData.length === 0) return;
 
-    return JSON.stringify(data);
+    return data;
   }
 
   /**
@@ -218,6 +238,13 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     document.execCommand("copy");
   }
 
+  /**
+   * do a "pasting" action with the data exported by {@link dumpSelectedData}
+   *
+   * @param data
+   * @param targetIndex - the insert point. if not specified, will be before the active block, of the end of current active slot.
+   * @see {@link dumpSelectedData}
+   */
   pasteWithData(data: any, targetIndex?: number) {
     if (!isIBClipboardData(data, this.brand)) throw new Error("Need a valid IBClipboardData object");
 
@@ -449,8 +476,8 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     });
 
     if (this.activeSlot !== lastSlot) {
-      lastSlot?.setActive(false);
-      this.activeSlot?.setActive(true);
+      lastSlot?._maybeUpdateActive(false);
+      this.activeSlot?._maybeUpdateActive(true);
       this.lastActiveSlot = this.activeSlot;
       hasChanges = true;
     }

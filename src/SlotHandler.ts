@@ -1,6 +1,7 @@
 import type { IBCutAction, IBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
+import { head } from "./itertools";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SlotInfo {
@@ -47,15 +48,50 @@ export class SlotHandler {
   }
 
   /**
-   * @internal NEVER CALL THIS! unless you know what's going on!
+   * update `isActive` and invoke `onActiveStatusChange`, if `isActive` is actually changed
+   *
+   * @internal
    * @param value new activeNumber
    * @returns whether activeNumber is actually changed
    */
-  setActive(value: boolean) {
+  _maybeUpdateActive(value: boolean) {
     if (this._isActive === value) return false;
     this._isActive = value;
     this.info.onActiveStatusChange?.(this);
     return true;
+  }
+
+  /**
+   * make this slot active and select all content, without focusing
+   *
+   * note: if BlockContent disabled `multipleSelect`, only the first block will be selected.
+   *
+   * @see {@link SlotHandler.focus} - is often used with
+   */
+  select() {
+    this.ctx.activeSlot = this;
+    this.ctx.activeBlocks =
+      this.ctx.options.multipleSelect ? new Set(this.items)
+        : this.items.size ? new Set([head(this.items)!])
+          : new Set();
+
+    this.ctx.syncActiveElementStatus();
+  }
+
+  /**
+   * make this slot active and move the focus to this BlockContext.
+   *
+   * note: if another slot was active, all blocks will be unselected.
+   *
+   * @see {@link SlotHandler.select} - you can call this before `focus`
+   */
+  focus() {
+    if (!this.isActive) {
+      this.ctx.activeBlocks.clear();
+      this.ctx.activeSlot = this;
+      this.ctx.syncActiveElementStatus();
+    }
+    this.ctx.focus();
   }
 
   isDescendantOfBlock(block: BlockHandler) {

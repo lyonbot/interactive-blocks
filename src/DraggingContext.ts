@@ -163,7 +163,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
 
     if (!this.ctx.activeBlocks.has(block)) this.ctx.addBlockToSelection(block, "none");
 
-    const text = this.ctx.getTextForClipboard();
+    const text = this.ctx.options.serializeForClipboard(this.ctx.dumpSelectedData());
     if (!text) return;
 
     const blocks = Array.from(this.ctx.activeBlocks);
@@ -305,7 +305,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
     if (!blocks || dropEffect === "copy") {
       // drop from outside, or is copying
       try {
-        const data = JSON.parse(ev.dataTransfer!.getData("text/plain"));
+        const data = this.ctx.options.unserializeForClipboard(ev.dataTransfer!.getData("text/plain"));
         ctx.activeSlot = slot;
         ctx.activeBlocks.clear();
         ctx.syncActiveElementStatus();
