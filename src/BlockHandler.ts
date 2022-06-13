@@ -25,7 +25,7 @@ export class BlockHandler {
   private _activeNumber: false | number = false;
 
   /**
-   * `false` if not selected. otherwise, the index (1,2,3...) in selection.
+   * `false` if not selected. otherwise, the index in current selection (starts from 1)
    */
   get activeNumber() {
     return this._activeNumber;
@@ -40,11 +40,13 @@ export class BlockHandler {
   }
 
   /**
-   * @internal NEVER CALL THIS! unless you know what's going on!
+   * update `activeNumber` and invoke `onActiveStatusChange`, if `activeNumber` is actually changed
+   *
+   * @internal
    * @param value new activeNumber
    * @returns whether activeNumber is actually changed
    */
-  setSelectStatus(value: number | false) {
+  _maybeUpdateActiveNumber(value: number | false) {
     if (this._activeNumber === value) return false;
     this._activeNumber = value;
     this.info.onActiveStatusChange?.(this);
@@ -80,13 +82,17 @@ export class BlockHandler {
     }
 
     this.ownerSlot?.items.delete(this);
-    this.slots.forEach(slot => slot.dispose());
+    this.slots.forEach((slot) => slot.dispose());
     this.slots.clear();
     this.info = emptyBlockInfo;
   }
 }
 
 const emptyBlockInfo = {
-  index: () => { throw new Error("Accessing a disposed block"); },
-  data: () => { throw new Error("Accessing a disposed block"); },
+  index: () => {
+    throw new Error("Accessing a disposed block");
+  },
+  data: () => {
+    throw new Error("Accessing a disposed block");
+  },
 };

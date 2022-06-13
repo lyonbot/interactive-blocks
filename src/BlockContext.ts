@@ -4,12 +4,7 @@ import { BlockHandler, BlockInfo } from "./BlockHandler";
 import { DraggingContext } from "./DraggingContext";
 import { find, head } from "./itertools";
 import { SlotHandler, SlotInfo } from "./SlotHandler";
-
-interface WithModifierKeys {
-  ctrlKey: boolean;
-  shiftKey: boolean;
-  metaKey: boolean;
-}
+import { MultipleSelectType, normalizeMultipleSelectType } from "./MultipleSelectType";
 
 export interface BlockContextEvents {
   activeElementChanged(ctx: BlockContext): void;
@@ -446,11 +441,11 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
     activeBlocksArray.forEach((item, index) => {
       lastBlocks?.delete(item);
-      hasChanges = item.setSelectStatus(index) || hasChanges;
+      hasChanges = item._maybeUpdateActiveNumber(index) || hasChanges;
     });
 
     lastBlocks?.forEach(item => {
-      hasChanges = item.setSelectStatus(false) || hasChanges;
+      hasChanges = item._maybeUpdateActiveNumber(false) || hasChanges;
     });
 
     if (this.activeSlot !== lastSlot) {
@@ -485,14 +480,9 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
    */
   addBlockToSelection(
     currBlock: BlockHandler,
-    multipleSelect: "none" | "ctrl" | "shift" | WithModifierKeys = "none"
+    multipleSelect?: MultipleSelectType
   ): void {
-    if (typeof multipleSelect === "object") {
-      if (multipleSelect.ctrlKey || multipleSelect.metaKey) multipleSelect = "ctrl";
-      else if (multipleSelect.shiftKey) multipleSelect = "shift";
-      else multipleSelect = "none";
-    }
-
+    multipleSelect = normalizeMultipleSelectType(multipleSelect);
     if (!this.options.multipleSelect) multipleSelect = "none";
 
     if (multipleSelect === "none") {

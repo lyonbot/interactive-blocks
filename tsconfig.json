@@ -9,6 +9,7 @@
     "noUncheckedIndexedAccess": true,
     "useDefineForClassFields": true,
     "composite": true,
+    "stripInternal": true,
     "declarationDir": "types"
   },
   "include": ["./src/**/*"],
