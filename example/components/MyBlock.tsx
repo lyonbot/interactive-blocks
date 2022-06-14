@@ -3,13 +3,14 @@ import { memo } from "preact/compat";
 import { useCallback, useImperativeHandle, useMemo, useRef } from "preact/hooks";
 import { useBlockContext, useOwnerSlot, useUnmount, useForceUpdate } from "../hooks";
 import { MyDataItem, useStore } from "../store";
-import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames } from "../utils";
+import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames, getRandomEmoji } from "../utils";
 import { MySlot } from "./MySlot";
 
 import type { BlockHandler } from "@lyonbot/interactive-blocks";
 
 export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDataItem }) {
   const { index, item } = props;
+  const [, dispatch] = useStore();
   const forceUpdate = useForceUpdate();
   const propsCache = useRef<{ index: number; item: MyDataItem }>();
   useImperativeHandle(propsCache, () => ({ index, item }), [index, item]);
@@ -33,6 +34,21 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
     []
   );
 
+  const addChild = useCallback(() => {
+    const path = getPathFromOwnerBlock(blockHandler); // current block's path, like [0,1,0]
+    const newItem: MyDataItem = {
+      name: `${getRandomEmoji()} ${(~~(Math.random() * 1e6 + 1e6)).toString(16).slice(-4).toUpperCase()}`,
+    };
+
+    dispatch({
+      path,
+      insert: {
+        index: item.children?.length || 0,
+        items: [newItem],
+      },
+    });
+  }, [blockHandler]);
+
   const { activeNumber, isActive } = blockHandler;
 
   return <div
@@ -51,6 +67,8 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
       {item.children?.length
         ? item.children.map((item, index) => <MyBlock key={index} index={index} item={item} />)
         : null}
+
+      <button className="myBlock-addButton" onClick={addChild}>Create...</button>
     </MySlot>
   </div>;
 });

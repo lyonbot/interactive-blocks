@@ -35,13 +35,14 @@ export const Introduction = () => {
   const handleInput = useCallback(() => applyNewText(false), []);
 
   return <div>
-    <ul>
-      <li>Click to select block / slot</li>
+    <h3>How to Play</h3>
+    <ol>
+      <li>click to <b>pick block &amp; slot</b></li>
+      <li><b>multiple-select</b> with <kbd>Ctrl</kbd> or <kbd>Shift</kbd></li>
+      <li><b>navigate</b> with arrow keys</li>
+      <li><b>copy, cut, paste</b> with <kbd>Ctrl+C</kbd> / <kbd>Ctrl+X</kbd> / <kbd>Ctrl+V</kbd></li>
       <li>Drag and drop. Also supports cross-window dragging.</li>
-      <li>Copy, Cut, Paste with <kbd>Ctrl+C</kbd> / <kbd>Ctrl+X</kbd> / <kbd>Ctrl+V</kbd></li>
-      <li>Navigate between blocks with arrow keys</li>
-      <li>Select multiple blocks with <kbd>Ctrl</kbd> or <kbd>Shift</kbd></li>
-    </ul>
+    </ol>
 
     <h3>Current Data</h3>
     <textarea class="demoPage-store" spellcheck={false} ref={textarea} onBlur={handleBlur} onInput={handleInput}></textarea>
