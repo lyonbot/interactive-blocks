@@ -1,6 +1,6 @@
 {
   "name": "@lyonbot/interactive-blocks",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "Make interactive selectable, drag-and-drop, copy-and-paste ready, Block and Slot components easily! Works with Vue, React and any MV* framework.",
   "publishConfig": {
     "access": "public",

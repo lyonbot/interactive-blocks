@@ -1,5 +1,6 @@
 {
   "name": "root",
+  "private": true,
   "version": "1.0.6",
   "description": "Make interactive selectable, drag-and-drop, copy-and-paste ready, Block and Slot components easily! Works with Vue, React and any MV* framework.",
   "scripts": {
@@ -7,6 +8,7 @@
     "prepack": "pnpm run -r prepack",
     "build": "pnpm run -r build",
     "predev": "pnpm run -r prepare-dev",
+    "publish": "pnpm --filter \"@lyonbot/*\" -r publish",
     "dev": "pnpm run --filter=!root --parallel dev"
   },
   "repository": {
