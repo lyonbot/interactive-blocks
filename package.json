@@ -1,11 +1,13 @@
 {
-  "name": "@lyonbot/interactive-blocks",
+  "name": "root",
   "version": "1.0.6",
   "description": "Make interactive selectable, drag-and-drop, copy-and-paste ready, Block and Slot components easily! Works with Vue, React and any MV* framework.",
   "scripts": {
     "clean": "pnpm run -r clean",
     "prepack": "pnpm run -r prepack",
-    "build": "pnpm run -r build"
+    "build": "pnpm run -r build",
+    "predev": "pnpm run -r prepare-dev",
+    "dev": "pnpm run --filter=!root --parallel dev"
   },
   "repository": {
     "type": "git",

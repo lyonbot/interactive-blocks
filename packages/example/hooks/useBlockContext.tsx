@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 
-import * as React from "preact";
-import { useContext } from "preact/hooks";
+import * as React from "react";
+import { useContext } from "react";
 import type { BlockContext } from "@lyonbot/interactive-blocks";
 
 const bc = React.createContext<BlockContext>(null as any);

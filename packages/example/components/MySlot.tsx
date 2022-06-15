@@ -1,7 +1,7 @@
 
-import * as React from "preact";
-import { memo } from "preact/compat";
-import { useCallback, useMemo } from "preact/hooks";
+import * as React from "react";
+import { memo } from "react";
+import { useCallback, useMemo } from "react";
 import { useBlockContext, useUnmount, useForceUpdate } from "../hooks";
 import { useStore } from "../store";
 import { OwnerSlotProvider } from "../hooks/useOwnerSlot";
@@ -9,7 +9,7 @@ import { classnames, clipboardDataToMyDataItem, getPathFromOwnerBlock } from "..
 
 import type { BlockHandler } from "@lyonbot/interactive-blocks";
 
-export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; children: React.ComponentChildren }) {
+export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; children: React.ReactNode }) {
   const ownerBlock = props.ownerBlock || null;
   const [, dispatch] = useStore();
   const forceUpdate = useForceUpdate();
@@ -46,13 +46,13 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
   }, ownerBlock), []);
   useUnmount(() => slotHandler.dispose());
 
-  const onPointerUp = useCallback((ev: PointerEvent) => {
+  const onPointerUp = useCallback<React.PointerEventHandler>((ev) => {
     slotHandler.handlePointerUp();
     if (document.activeElement === ev.currentTarget) slotHandler.ctx.focus();
   }, []);
 
   const dragEventHandlers = useMemo(
-    () => blockContext.dragging.getDefaultSlotEventHandlers(slotHandler, "react"),
+    () => blockContext.dragging.getDefaultSlotEventHandlers(slotHandler, "react") as any,
     []
   );
 
@@ -81,7 +81,7 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
       // 2. `indexToDrop` is always valid number when `isDragHovering == true`
 
       slotHandler.isDragHovering &&
-      <div className="mySlot-indexToDrop" key="indexToDrop" style={{ "grid-row-start": slotHandler.indexToDrop! + 1 }}>
+      <div className="mySlot-indexToDrop" key="indexToDrop" style={{ gridRowStart: slotHandler.indexToDrop! + 1 }}>
         {`indexToDrop = ${slotHandler.indexToDrop}`}
       </div>
       //-------------------------------------------------

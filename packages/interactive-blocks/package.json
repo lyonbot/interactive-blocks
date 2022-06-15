@@ -15,8 +15,9 @@
   "amdName": "InteractiveBlocks",
   "scripts": {
     "clean": "rimraf dist types",
-    "prepack": "run-s clean build:lib",
+    "prepack": "run-s clean build",
     "build": "microbundle",
+    "prepare-dev": "[ -d dist ] || npm run build",
     "dev": "microbundle watch --compress false"
   },
   "repository": {

@@ -1,5 +1,5 @@
-import * as React from "preact";
-import { useCallback, useEffect, useRef } from "preact/hooks";
+import * as React from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useStore } from "../store";
 
 /**
@@ -15,7 +15,7 @@ export const Introduction = () => {
     textarea.current!.value = JSON.stringify(store, null, 2);
   }, [store]);
 
-  const storeRef = useRef<typeof store>(null);
+  const storeRef = useRef<typeof store | null>(null);
   storeRef.current = store;
   const applyNewText = useCallback((resetIfFail = true) => {
     try {
@@ -45,6 +45,6 @@ export const Introduction = () => {
     </ol>
 
     <h3>Current Data</h3>
-    <textarea class="demoPage-store" spellcheck={false} ref={textarea} onBlur={handleBlur} onInput={handleInput}></textarea>
+    <textarea className="demoPage-store" spellCheck={false} ref={textarea} onBlur={handleBlur} onInput={handleInput}></textarea>
   </div>;
 };

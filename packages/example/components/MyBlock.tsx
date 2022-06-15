@@ -1,6 +1,6 @@
-import * as React from "preact";
-import { memo } from "preact/compat";
-import { useCallback, useImperativeHandle, useMemo, useRef } from "preact/hooks";
+import * as React from "react";
+import { memo } from "react";
+import { useCallback, useImperativeHandle, useMemo, useRef } from "react";
 import { useBlockContext, useOwnerSlot, useUnmount, useForceUpdate } from "../hooks";
 import { MyDataItem, useStore } from "../store";
 import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames, getRandomEmoji } from "../utils";
@@ -24,13 +24,13 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
   }, ownerSlot), []);
   useUnmount(() => blockHandler.dispose());
 
-  const onPointerUp = useCallback((ev: PointerEvent) => {
+  const onPointerUp = useCallback<React.PointerEventHandler>((ev) => {
     blockHandler.handlePointerUp();
     if (document.activeElement === ev.currentTarget) blockHandler.ctx.focus();
   }, []);
 
   const dragEventHandlers = useMemo(
-    () => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react"),
+    () => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react") as any,
     []
   );
 
@@ -76,7 +76,7 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
 
 const MyBlockName = (props: { name: string; blockHandler: BlockHandler }) => {
   const [, dispatch] = useStore();
-  const handleChange = useCallback<React.JSX.GenericEventHandler<HTMLInputElement>>((ev) => {
+  const handleChange = useCallback<React.ChangeEventHandler<HTMLInputElement>>((ev) => {
     const blockHandler = props.blockHandler;
     const path = getPathFromOwnerBlock(blockHandler);
     const name = ev.currentTarget.value;

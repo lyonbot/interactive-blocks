@@ -21,17 +21,21 @@ importers:
   packages/example:
     specifiers:
       '@lyonbot/interactive-blocks': ^1.0.6
-      preact: ^10.5.14
-      requirejs: ^2.3.6
+      '@types/react': ^18.0.12
+      '@types/react-dom': ^18.0.5
+      react: ^18.2.0
+      react-dom: ^18.2.0
       rimraf: ^3.0.2
       stylus: ^0.58.1
       typescript: ^4.4.3
       vite: ^2.6.5
     dependencies:
       '@lyonbot/interactive-blocks': link:../interactive-blocks
-      preact: 10.5.14
-      requirejs: 2.3.6
+      react: 18.2.0
+      react-dom: 18.2.0_react@18.2.0
     devDependencies:
+      '@types/react': 18.0.12
+      '@types/react-dom': 18.0.5
       rimraf: 3.0.2
       stylus: 0.58.1
       typescript: 4.4.3
@@ -46,6 +50,19 @@ importers:
     devDependencies:
       microbundle: 0.13.3
       npm-run-all: 4.1.5
+      rimraf: 3.0.2
+      typescript: 4.4.3
+
+  packages/interactive-blocks-react:
+    specifiers:
+      '@lyonbot/interactive-blocks': ^1.0.6
+      '@types/react': ^18.0.12
+      rimraf: ^3.0.2
+      typescript: ^4.4.3
+    dependencies:
+      '@lyonbot/interactive-blocks': link:../interactive-blocks
+    devDependencies:
+      '@types/react': 18.0.12
       rimraf: 3.0.2
       typescript: 4.4.3
 
@@ -1661,10 +1678,32 @@ packages:
     resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==, registry: http://mirrors.cloud.tencent.com/npm/}
     dev: true
 
+  /@types/prop-types/15.7.5:
+    resolution: {integrity: sha512-JCB8C6SnDoQf0cNycqd/35A7MjcnK+ZTqE7judS6o7utxUCg6imJg3QK2qzHKszlTjcj2cn+NwMB2i96ubpj7w==}
+    dev: true
+
+  /@types/react-dom/18.0.5:
+    resolution: {integrity: sha512-OWPWTUrY/NIrjsAPkAk1wW9LZeIjSvkXRhclsFO8CZcZGCOg2G0YZy4ft+rOyYxy8B7ui5iZzi9OkDebZ7/QSA==}
+    dependencies:
+      '@types/react': 18.0.12
+    dev: true
+
+  /@types/react/18.0.12:
+    resolution: {integrity: sha512-duF1OTASSBQtcigUvhuiTB1Ya3OvSy+xORCiEf20H0P0lzx+/KeVsA99U5UjLXSbyo1DRJDlLKqTeM1ngosqtg==}
+    dependencies:
+      '@types/prop-types': 15.7.5
+      '@types/scheduler': 0.16.2
+      csstype: 3.1.0
+    dev: true
+
   /@types/resolve/1.17.1:
     resolution: {integrity: sha512-yy7HuzQhj0dhGpD8RLXSZWEkLsV9ibvxvi6EiJ3bkqLAO1RGo0WbkWQiwpRlSFymTJRz0d3k5LM3kkx8ArDbLw==}
     dependencies:
       '@types/node': 16.10.2
+    dev: true
+
+  /@types/scheduler/0.16.2:
+    resolution: {integrity: sha512-hppQEBDmlwhFAXKJX2KnWLYu5yMfi91yazPb2l+lbJiwW+wdo1gNeRA+3RgNSO39WYX2euey41KEwnqesU2Jew==}
     dev: true
 
   /@types/semver/6.2.3:
@@ -2359,6 +2398,10 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       css-tree: 1.1.3
+    dev: true
+
+  /csstype/3.1.0:
+    resolution: {integrity: sha512-uX1KG+x9h5hIJsaKR9xHUeUraxf8IODOwq9JLNPq6BwB04a/xgpq3rcx47l5BZu5zBPlgD342tdke3Hom/nJRA==}
     dev: true
 
   /csv-generate/3.4.3:
@@ -3506,8 +3549,7 @@ packages:
     dev: true
 
   /js-tokens/4.0.0:
-    resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==, registry: http://mirrors.cloud.tencent.com/npm/, tarball: http://mirrors.cloud.tencent.com/npm/js-tokens/-/js-tokens-4.0.0.tgz}
-    dev: true
+    resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
   /js-yaml/3.14.1:
     resolution: {integrity: sha512-okMH7OXXJ7YrN9Ok3/SXrnu4iX9yOk+25nqX4imS2npuvTYDmo/QEZoqwZkYaIDk3jVvBOTOIEgEhaLOynBS9g==, registry: http://mirrors.cloud.tencent.com/npm/, tarball: http://mirrors.cloud.tencent.com/npm/js-yaml/-/js-yaml-3.14.1.tgz}
@@ -3670,6 +3712,13 @@ packages:
   /lodash.uniq/4.5.0:
     resolution: {integrity: sha1-0CJTc662Uq3BvILklFM5qEJ1R3M=, registry: http://mirrors.cloud.tencent.com/npm/}
     dev: true
+
+  /loose-envify/1.4.0:
+    resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
+    hasBin: true
+    dependencies:
+      js-tokens: 4.0.0
+    dev: false
 
   /lru-cache/4.1.5:
     resolution: {integrity: sha512-sWZlbEP2OsHNkXrMl5GYk/jKk70MBng6UU4YI/qGDYbgf6YbP4EvmqISbXCoJiRKs+1bSpFHVgQxvJ17F2li5g==}
@@ -4520,10 +4569,6 @@ packages:
       source-map-js: 0.6.2
     dev: true
 
-  /preact/10.5.14:
-    resolution: {integrity: sha512-KojoltCrshZ099ksUZ2OQKfbH66uquFoxHSbnwKbTJHeQNvx42EmC7wQVWNuDt6vC5s3nudRHFtKbpY4ijKlaQ==}
-    dev: false
-
   /preferred-pm/3.0.3:
     resolution: {integrity: sha512-+wZgbxNES/KlJs9q40F/1sfOd/j7f1O9JaHcW5Dsn3aUUOZg3L2bjpVUcKV2jvtElYfoTuQiNeMfQJ4kwUAhCQ==}
     engines: {node: '>=10'}
@@ -4590,6 +4635,23 @@ packages:
     dependencies:
       safe-buffer: 5.2.1
     dev: true
+
+  /react-dom/18.2.0_react@18.2.0:
+    resolution: {integrity: sha512-6IMTriUmvsjHUjNtEDudZfuDQUoWXVxKHhlEGSk81n4YFS+r/Kl99wXiwlVXtPBtJenozv2P+hxDsw9eA7Xo6g==}
+    peerDependencies:
+      react: ^18.2.0
+    dependencies:
+      loose-envify: 1.4.0
+      react: 18.2.0
+      scheduler: 0.23.0
+    dev: false
+
+  /react/18.2.0:
+    resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
+    engines: {node: '>=0.10.0'}
+    dependencies:
+      loose-envify: 1.4.0
+    dev: false
 
   /read-pkg-up/7.0.1:
     resolution: {integrity: sha512-zK0TB7Xd6JpCLmlLmufqykGE+/TlOePD6qKClNW7hHDKFh/J7/7gCWGR7joEQEW1bKq3a3yUZSObOoWLFQ4ohg==}
@@ -4708,12 +4770,6 @@ packages:
   /require-main-filename/2.0.0:
     resolution: {integrity: sha512-NKN5kMDylKuldxYLSUfrbo5Tuzh4hd+2E8NPPX02mZtn1VuREQToYe/ZdlJy+J3uCpfaiGF05e7B8W0iXbQHmg==}
     dev: true
-
-  /requirejs/2.3.6:
-    resolution: {integrity: sha512-ipEzlWQe6RK3jkzikgCupiTbTvm4S0/CAU5GlgptkN5SO6F3u0UD0K18wy6ErDqiCyP4J4YYe1HuAShvsxePLg==}
-    engines: {node: '>=0.4.0'}
-    hasBin: true
-    dev: false
 
   /resolve-from/4.0.0:
     resolution: {integrity: sha512-pb/MYmXstAkysRFx8piNI1tGFNQIFA3vkE3Gq4EuA1dF6gHp/+vgZqsCGJapvy8N3Q+4o7FwvquPJcnZ7RYy4g==, registry: http://mirrors.cloud.tencent.com/npm/, tarball: http://mirrors.cloud.tencent.com/npm/resolve-from/-/resolve-from-4.0.0.tgz}
@@ -4854,6 +4910,12 @@ packages:
   /sax/1.2.4:
     resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
     dev: true
+
+  /scheduler/0.23.0:
+    resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
+    dependencies:
+      loose-envify: 1.4.0
+    dev: false
 
   /semver/5.7.1:
     resolution: {integrity: sha512-sauaDf/PZdVgrLTNYHRtpXa1iRiKcaebiKQ1BJdpQlWH2lCvexQdX55snPFyK7QzpudqbCI0qXFfOasHdyNDGQ==}

@@ -1,5 +1,5 @@
-import * as React from "preact";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import * as React from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BlockContext } from "@lyonbot/interactive-blocks";
 import { MyBlock } from "./MyBlock";
 import { MySlot } from "./MySlot";

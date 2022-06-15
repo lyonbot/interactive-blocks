@@ -1,11 +1,10 @@
-import * as React from "preact";
+import * as React from "react";
+import * as ReactDOM from "react-dom";
 import { StoreProvider } from "./store";
 import { App } from "./components/App";
-import "preact/debug";
 
-React.render(
-  <StoreProvider>
-    <App />
-  </StoreProvider>,
-  document.getElementById("app")!
-);
+const container = document.getElementById("app")!;
+ReactDOM.render(<StoreProvider>
+  <App />
+</StoreProvider>
+, container);

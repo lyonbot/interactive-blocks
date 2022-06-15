@@ -1,5 +1,5 @@
-import * as React from "preact";
-import { useContext, useReducer } from "preact/hooks";
+import * as React from "react";
+import { useContext, useReducer } from "react";
 import { moveItemsInArray, moveItemsBetweenArrays, removeItems } from "@lyonbot/interactive-blocks";
 
 export interface MyDataItem {
@@ -96,7 +96,7 @@ const reducer = (state: MyDataItem[], action: StoreAction): MyDataItem[] => {
 
 const Ctx = React.createContext<[MyDataItem[], (action: StoreAction) => void]>(null as any);
 
-export const StoreProvider = (props: { children?: React.ComponentChildren }) => {
+export const StoreProvider = (props: { children?: React.ReactNode }) => {
   const stateAndDispatcher = useReducer(reducer, null, getDefaultValue);
 
   return <Ctx.Provider value={stateAndDispatcher}>{props.children}</Ctx.Provider>;

@@ -23,7 +23,7 @@ These keyboard shortcuts are supported!
 
 ## How to Integrate
 
-This lib works with any framework, including React and Vue. Example is written with preact and works with React too.
+This lib works with any framework, including React and Vue. Example is written with React.
 
 [📖 Read document with Docsify](https://lyonbot.github.io/interactive-blocks/docs/)
 

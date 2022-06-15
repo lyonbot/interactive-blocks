@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useRef } from "react";
 
 export const useUnmount = (fn: () => any): void => {
   const fnRef = useRef(fn);
