@@ -311,10 +311,13 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     if (!slot) return false;
 
     const block0index = blocks[0]!.index;
+    const indexes=Array.from(blocks, x => x.index);
 
     const action = new IBCutAction({
       type: "cut",
       blocks,
+      indexes,
+      indexesAscending: indexes.slice().sort((a, b) => a - b),
       ctx: this,
       slot,
     });

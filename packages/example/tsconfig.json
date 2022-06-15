@@ -11,10 +11,14 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "@lyonbot/interactive-blocks": ["../interactive-blocks/src/index.ts"]
+      "@lyonbot/interactive-blocks": ["../interactive-blocks/src/index.ts"],
+      "@lyonbot/interactive-blocks-react": ["../interactive-blocks-react/src/index.ts"]
     }
   },
-  "references": [{ "path": "../interactive-blocks/tsconfig.json" }],
+  "references": [
+    { "path": "../interactive-blocks/tsconfig.json" },
+    { "path": "../interactive-blocks-react/tsconfig.json" }
+  ],
   "include": ["./**/*"],
   "exclude": ["node_modules"]
 }

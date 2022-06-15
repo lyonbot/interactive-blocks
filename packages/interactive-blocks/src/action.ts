@@ -49,7 +49,13 @@ export const IBCutAction = actionClass<{
   readonly type: "cut";
   readonly ctx: BlockContext;
   readonly slot: SlotHandler;
+
+  /** the blocks to be cut, in selector order (NOT ASCENDING ORDER!) */
   readonly blocks: BlockHandler[];
+
+  /** the indexes of blocks to be cut, in selector order (NOT ASCENDING ORDER!) */
+  readonly indexes: number[];
+  readonly indexesAscending: number[];
 }>();
 
 export type IBMoveInSlotAction = InstanceType<typeof IBMoveInSlotAction>;

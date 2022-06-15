@@ -1,12 +1,13 @@
 import * as React from "react";
 import { memo } from "react";
 import { useCallback, useImperativeHandle, useMemo, useRef } from "react";
-import { useBlockContext, useOwnerSlot, useUnmount, useForceUpdate } from "../hooks";
+import { useForceUpdate } from "../hooks";
 import { MyDataItem, useStore } from "../store";
 import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames, getRandomEmoji } from "../utils";
 import { MySlot } from "./MySlot";
 
 import type { BlockHandler } from "@lyonbot/interactive-blocks";
+import { useNewBlockHandler } from "@lyonbot/interactive-blocks-react";
 
 export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDataItem }) {
   const { index, item } = props;
@@ -15,19 +16,13 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
   const propsCache = useRef<{ index: number; item: MyDataItem }>();
   useImperativeHandle(propsCache, () => ({ index, item }), [index, item]);
 
-  const blockContext = useBlockContext();
-  const ownerSlot = useOwnerSlot();
-  const blockHandler = useMemo(() => blockContext.createBlock({
-    data: () => myDataItemToClipboardData(propsCache.current!.item),
-    index: () => propsCache.current!.index,
-    onStatusChange: () => forceUpdate(),
-  }, ownerSlot), []);
-  useUnmount(() => blockHandler.dispose());
-
-  const onPointerUp = useCallback<React.PointerEventHandler>((ev) => {
-    blockHandler.handlePointerUp();
-    if (document.activeElement === ev.currentTarget) blockHandler.ctx.focus();
-  }, []);
+  const { blockContext, blockHandler, handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(
+    () => ({
+      data: () => myDataItemToClipboardData(propsCache.current!.item),
+      index: () => propsCache.current!.index,
+      onStatusChange: () => forceUpdate(),
+    })
+  );
 
   const dragEventHandlers = useMemo(
     () => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react") as any,
@@ -51,26 +46,28 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
 
   const { activeNumber, isActive } = blockHandler;
 
-  return <div
-    className={classnames("myBlock", isActive && "isActive")}
-    tabIndex={-1}
-    onPointerUp={onPointerUp}
+  return <BlockWrapper>
+    <div
+      className={classnames("myBlock", isActive && "isActive")}
+      tabIndex={-1}
+      onPointerUp={handleBlockPointerUp}
 
-    draggable
-    {...dragEventHandlers}
-  >
-    {isActive && <div className="myBlock-selectIndex">{activeNumber as number + 1}</div>}
+      draggable
+      {...dragEventHandlers}
+    >
+      {isActive && <div className="myBlock-selectIndex">{activeNumber as number + 1}</div>}
 
-    <MyBlockName name={item.name} blockHandler={blockHandler} />
+      <MyBlockName name={item.name} blockHandler={blockHandler} />
 
-    <MySlot ownerBlock={blockHandler}>
-      {item.children?.length
-        ? item.children.map((item, index) => <MyBlock key={index} index={index} item={item} />)
-        : null}
+      <MySlot>
+        {item.children?.length
+          ? item.children.map((item, index) => <MyBlock key={index} index={index} item={item} />)
+          : null}
 
-      <button className="myBlock-addButton" onClick={addChild}>Create...</button>
-    </MySlot>
-  </div>;
+        <button className="myBlock-addButton" onClick={addChild}>Create...</button>
+      </MySlot>
+    </div>
+  </BlockWrapper>;
 });
 
 

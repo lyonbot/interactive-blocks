@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "target": "ES2019",
+    "strict": true,
+    "composite": true,
+    "jsx": "react",
+    "allowJs": true,
+    "baseUrl": ".",
+    "paths": {
+      "@lyonbot/interactive-blocks-react": ["../src/index"]
+    }
+  },
+  "references": [{ "path": "../tsconfig.json" }],
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"]
+}

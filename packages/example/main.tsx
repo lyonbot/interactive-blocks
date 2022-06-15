@@ -1,10 +1,10 @@
 import * as React from "react";
-import * as ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { StoreProvider } from "./store";
 import { App } from "./components/App";
 
 const container = document.getElementById("app")!;
-ReactDOM.render(<StoreProvider>
+const root = createRoot(container);
+root.render(<StoreProvider>
   <App />
-</StoreProvider>
-, container);
+</StoreProvider>);

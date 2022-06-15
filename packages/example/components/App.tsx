@@ -1,11 +1,10 @@
 import * as React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { BlockContext } from "@lyonbot/interactive-blocks";
+import { ReactInteractiveBlocksRoot } from "@lyonbot/interactive-blocks-react";
 import { MyBlock } from "./MyBlock";
 import { MySlot } from "./MySlot";
 import { useStore } from "../store";
-import { BlockContextProvider } from "../hooks/useBlockContext";
-import { useUnmount } from "../hooks/useUnmount";
 import { classnames } from "../utils";
 import { Introduction } from "./Introduction";
 
@@ -13,21 +12,22 @@ export const App = function () {
   const [data] = useStore();
   const [hasFocus, setHasFocus] = useState(false);
 
-  const blockContext = useMemo(() => new BlockContext(), []);
-  useUnmount(() => blockContext.dispose());
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore -- for debugging
-    window.blockContext = blockContext;
+  const handleBlockContextReady = React.useCallback(
+    (blockContext: BlockContext) => {
+      blockContext.on("focus", () => setHasFocus(true));
+      blockContext.on("blur", () => setHasFocus(false));
+      blockContext.on("paste", (action) => {
+        console.log("pasting...", action);
+      });
 
-    blockContext.on("focus", () => setHasFocus(true));
-    blockContext.on("blur", () => setHasFocus(false));
-    blockContext.on("paste", (action) => {
-      console.log("pasting...", action);
-    });
-  }, []);
+      // --------------------
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore -- for debugging
+      window.blockContext = blockContext;
 
-  return <BlockContextProvider value={blockContext}>
+    }, []);
+
+  return <ReactInteractiveBlocksRoot onMount={handleBlockContextReady}>
     {Header}
     <div className={classnames("demoPage", hasFocus && "hasFocus")}>
       <div className="demoPage-introductionArea">
@@ -40,7 +40,7 @@ export const App = function () {
         </MySlot>
       </div>
     </div>
-  </BlockContextProvider>;
+  </ReactInteractiveBlocksRoot>;
 };
 
 const githubUrl = "https://github.com/lyonbot/interactive-blocks";
