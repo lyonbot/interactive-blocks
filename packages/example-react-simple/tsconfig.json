@@ -8,12 +8,8 @@
     "composite": true,
     "jsx": "react",
     "allowJs": true,
-    "baseUrl": ".",
-    "paths": {
-      "@lyonbot/interactive-blocks-react": ["../interactive-blocks-react/src/index"]
-    }
+    "baseUrl": "."
   },
-  "references": [{ "path": "../interactive-blocks-react/tsconfig.json" }],
   "include": ["./src/**/*"],
   "exclude": ["node_modules"]
 }
