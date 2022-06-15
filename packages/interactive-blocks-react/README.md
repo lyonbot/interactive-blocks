@@ -1,10 +1,23 @@
 # @lyonbot/interactive-blocks-react
 
-[ Demo ](@lyonbot/interactive-blocks-react)
+This package helps you integrate [interactive-blocks](https://lyonbot.github.io/interactive-blocks/) to your ⚛️ React app, with 🪝 React Hooks API.
+
+- [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react/example) | [Try with StackBlitz](https://stackblitz.com/github/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react/example)
 
 ## Usage
 
-```js
+All you need is writing a **Block component** and a **Slot Component**, and use them inside `<ReactInteractiveBlocksRoot>`
+
+To integrate with your state management (Redux, Mobx, Recoil, immer, etc.), you have to accomplish the following:
+
+- In Block Component: `index` and `data` getter functions
+- In Slot Component: `onCut` and `onPaste` callbacks
+
+More guides can be found after the scaffolding.
+
+### Basic Scaffolding
+
+```jsx
 import { ReactInteractiveBlocksRoot, useLatestRef, useNewBlockHandler, useNewSlotHandler } from "@lyonbot/interactive-blocks-react";
 import { removeItems } from "@lyonbot/interactive-blocks";   // very useful util function
 
@@ -21,7 +34,7 @@ function MyBlock(props) {
   const [statusClassNames, setStatusClassNames] = React.useState("");
   const { handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(() => ({
     index: () => ***,  // ❗ a getter function, returning index
-    data: () => ***, // ❗ a getter function, returning item value (object)
+    data: () => ***,   // ❗ a getter function, returning current block's data (for onPaste)
     onStatusChange: (block) => {
       let ans = "";
       if (block.isActive) ans += " isActive";
@@ -67,19 +80,16 @@ export function MySlot(props) {
     // for slot
 
     onCut: (action) => {
-      const path = lastProps.current!.path;
-      const newList: DataItem[] = (store.get(path) || []).slice();
-
-      removeItems(newList, action.indexes);
-      store.set(path, newList);
+      /**
+       * ❗ delete items at `action.indexes`
+       */
     },
 
     onPaste: (action) => {
-      const path = lastProps.current!.path;
-      const newList: DataItem[] = (store.get(path) || []).slice();
-
-      newList.splice(action.index, 0, ...action.data.blocksData);
-      store.set(path, newList);
+      /**
+       * ❗ read `action.data.blocksData` ( from Block component's `data` getter )
+       * ❗ and insert into the list, at `action.index`
+       */
     },
   }));
 
@@ -101,4 +111,154 @@ export function MySlot(props) {
     </div>
   </SlotWrapper>;
 }
+```
+
+## Integrate with your state management
+
+As mentioned above, you have to accomplish the following:
+
+- In Block Component: `index` and `data` getter functions
+- In Slot Component: `onCut` and `onPaste` callbacks
+
+### Don't directly use `props` and state
+
+In `useNew***Handler`, the initializer function only executes once, therefore, **you can't directly use `props` and state inside it ❗**. The closure captures the first props and never update!
+
+To solve this kludge problem, you can use `useLatestRef` to make a ref, and keep it synchronized with the latest props and state values.
+
+For example, in Block component, we make a `propsRef` and access newest prop values via `propsRef.current.*`:
+
+```jsx
+import { useLatestRef } from "@lyonbot/interactive-blocks-react";
+
+function MyBlock(props) {
+  const propsRef = useLatestRef(props);  // 👈  new
+  const { handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(() => ({
+    index: () => propsRef.current.index,  // 👈  always get latest "index" prop
+    data: () => propsRef.current.value,   // 👈  always get latest "value" prop
+    ...
+```
+
+It's also necessary in Slot component!
+
+### Update state in Slot callbacks
+
+You must have noticed `onCut` and `onPaste` callbacks.
+
+```js
+  onCut: (action) => {
+    /**
+     * ❗ delete items at `action.indexes`
+     */
+  },
+
+  onPaste: (action) => {
+    /**
+     * ❗ read `action.data.blocksData` ( from Block component's `data` getter )
+     * ❗ and insert into the list, at `action.index`
+     */
+  },
+```
+
+- If you are using global state management, you can use `dispatch` to update data here.
+- If you want to invoke callbacks from props, you can do it like `propsRef.current.onChange(...)`
+
+When cut (wiping out blocks), you can use `removeItems` to remove items from the list.
+
+```js
+const newList = oldList.slice(); // copy old list
+removeItems(newList, action.indexes); // delete items
+*** // ❗ now, submit the newList to the state
+```
+
+When paste (inserting blocks), you can read Block `data` getter function's output, and insert them into the list.
+
+```js
+const newList = oldList.slice(); // copy old list
+const items = action.data.blocksData; // read Block `data` getter function's output
+*** // ❗ process the items, if needed
+newList.splice(action.index, 0, ...items); // insert items
+*** // ❗ now, submit the newList to the state
+```
+
+## Advanced: Customize Behaviors
+
+### Root Context
+
+```jsx
+const handleInteractiveBlocksMount = useCallback((blockContext) => {
+  // this callback only invoke once
+  // you can add event listeners now.
+
+  blockContext.on("focus", () => {
+    console.log("focus");
+  });
+
+  blockContext.on("blur", () => {
+    console.log("blur");
+  });
+
+  blockContext.on("paste", (action) => {
+    console.log("pasting...", action);
+  });
+
+}, [])
+
+<ReactInteractiveBlocksRoot
+  options={/* see interactive-blocks document */}
+  onMount={handleInteractiveBlocksMount}
+  onUnmount={handleInteractiveBlocksUnmount}
+>
+  {/* put root blocks and root slots here */}
+</ReactInteractiveBlocksRoot>
+```
+
+### Block Handler
+
+In your Block component, you can get `blockHandler` and use it like this:
+
+```jsx
+const {
+  handleBlockPointerUp,
+  BlockWrapper,
+  blockHandler, // 👈  new
+} = useNewBlockHandler(() => ({
+  /* options */
+}));
+
+// then you can call blockHandler methods like:
+blockHandler.isActive
+blockHandler.hasFocus
+
+blockHandler.select();
+blockHandler.focus();
+blockHandler.unselect();
+
+// and more
+```
+
+### Slot Handler
+
+In your Slot component, you can get `slotHandler`:
+
+```jsx
+const {
+  handleSlotPointerUp,
+  SlotWrapper,
+  slotHandler, // 👈  new
+} = useNewSlotHandler(() => ({
+  /* options */
+}));
+
+// then you can call slotHandler methods like:
+slotHandler.isActive
+slotHandler.hasFocus
+
+slotHandler.isDescendantOfBlock(anotherBlockHandler);
+slotHandler.isDescendantOfSlot(anotherSlotHandler);
+
+slotHandler.select();
+slotHandler.focus();
+
+// and more
 ```

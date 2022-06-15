@@ -13,7 +13,7 @@ interface DataItem {
 }
 
 const store = createStore<DataItem>({
-  name: "test",
+  name: "root card",
   children: [
     { name: "child1" },
     { name: "child2" },
@@ -26,7 +26,8 @@ const store = createStore<DataItem>({
 export function App() {
   return (
     <div>
-      <h1>Hello World</h1>
+      <h1><a href="https://github.com/lyonbot/interactive-blocks">InteractiveBlocks</a> x React</h1>
+      <p>select some child cards, and press arrow keys, Ctrl+A, Ctrl+C, Ctrl+V etc</p>
 
       <ReactInteractiveBlocksRoot>
         <MyBlock path={[]} />

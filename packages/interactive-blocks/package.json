@@ -14,7 +14,7 @@
   "types": "./index.d.ts",
   "amdName": "InteractiveBlocks",
   "scripts": {
-    "clean": "rimraf dist types",
+    "clean": "rimraf dist types tsconfig.tsbuildinfo",
     "prepack": "run-s clean build",
     "build": "microbundle",
     "prepare-dev": "[ -d dist ] || npm run build",

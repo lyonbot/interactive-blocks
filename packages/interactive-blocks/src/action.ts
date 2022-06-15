@@ -50,12 +50,28 @@ export const IBCutAction = actionClass<{
   readonly ctx: BlockContext;
   readonly slot: SlotHandler;
 
-  /** the blocks to be cut, in selector order (NOT ASCENDING ORDER!) */
+  /** the blocks to be cut, in selector order */
   readonly blocks: BlockHandler[];
 
-  /** the indexes of blocks to be cut, in selector order (NOT ASCENDING ORDER!) */
+  /**
+   * the indexes of blocks to be cut, in selector order
+   *
+   * @see indexesDescending
+   */
   readonly indexes: number[];
-  readonly indexesAscending: number[];
+
+  /**
+   * the indexes of blocks to be cut, in descending order
+   *
+   * the descending order may help you wipe out the items one-by-one safely:
+   *
+   * ```js
+   * action.indexesDescending.forEach(index => {
+   *   array.splice(index, 1);
+   * })
+   * ```
+   */
+  readonly indexesDescending: number[];
 }>();
 
 export type IBMoveInSlotAction = InstanceType<typeof IBMoveInSlotAction>;

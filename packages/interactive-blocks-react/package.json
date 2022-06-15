@@ -7,7 +7,7 @@
     "dist"
   ],
   "scripts": {
-    "clean": "rimraf dist types",
+    "clean": "rimraf dist types tsconfig.tsbuildinfo",
     "prepack": "run-s clean build",
     "build": "tsc",
     "dev": "tsc -w",

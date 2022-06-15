@@ -317,7 +317,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
       type: "cut",
       blocks,
       indexes,
-      indexesAscending: indexes.slice().sort((a, b) => a - b),
+      indexesDescending: indexes.slice().sort((a, b) => b - a),
       ctx: this,
       slot,
     });
