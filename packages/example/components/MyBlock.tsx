@@ -20,7 +20,7 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
   const blockHandler = useMemo(() => blockContext.createBlock({
     data: () => myDataItemToClipboardData(propsCache.current!.item),
     index: () => propsCache.current!.index,
-    onActiveStatusChange: () => forceUpdate(),
+    onStatusChange: () => forceUpdate(),
   }, ownerSlot), []);
   useUnmount(() => blockHandler.dispose());
 

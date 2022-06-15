@@ -23,15 +23,19 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
+    - uses: pnpm/action-setup@v2.2.2
+      with:
+        version: 6.32.1
+
     - name: Build
       run: |
-        npm install
-        npm run build
+        pnpm install
+        pnpm run build
 
     - name: Make Site
       run: |
         rm -rf site || true
-        cp -r ./example/dist ./site
+        cp -r ./packages/example/dist ./site
         cp -r ./docs ./site/
         touch ./site/.nojekyll
 

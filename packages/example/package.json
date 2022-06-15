@@ -1,0 +1,22 @@
+{
+  "name": "demo",
+  "authors": "lyonbot",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "vite -c vite.config.js build",
+    "dev": "vite -c vite.config.js --open"
+  },
+  "dependencies": {
+    "@lyonbot/interactive-blocks": "^1.0.6",
+    "preact": "^10.5.14",
+    "requirejs": "^2.3.6"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "stylus": "^0.58.1",
+    "typescript": "^4.4.3",
+    "vite": "^2.6.5"
+  }
+}

@@ -26,7 +26,7 @@ export const MySlot = memo(function MySlot(props: { ownerBlock?: BlockHandler; c
         path: getPathFromOwnerBlock(ownerBlock),
         insert: { index: action.index, items: action.data.blocksData.map(clipboardDataToMyDataItem) },
       }),
-    onActiveStatusChange: () => forceUpdate(),
+    onStatusChange: () => forceUpdate(),
 
     onDragHoverStatusChange: () => forceUpdate(),
     onMoveInSlot: (action) =>

@@ -12,7 +12,13 @@ export interface SlotInfo {
 
   onCut?(action: IBCutAction): void;
   onPaste?(action: IBPasteAction): void;
-  onActiveStatusChange?(slot: SlotHandler): void;
+
+  /**
+   * called when `isActive` or `hasFocus` is changed.
+   *
+   * when triggered, you shall update the appearance.
+   */
+  onStatusChange?(slot: SlotHandler): void;
 }
 
 export class SlotHandler {
@@ -47,8 +53,12 @@ export class SlotHandler {
     return this._isActive;
   }
 
+  get hasFocus() {
+    return this.isActive && this.ctx.hasFocus;
+  }
+
   /**
-   * update `isActive` and invoke `onActiveStatusChange`, if `isActive` is actually changed
+   * update `isActive` and invoke `onStatusChange`, if `isActive` is actually changed
    *
    * @internal
    * @param value new activeNumber
@@ -57,7 +67,7 @@ export class SlotHandler {
   _maybeUpdateActive(value: boolean) {
     if (this._isActive === value) return false;
     this._isActive = value;
-    this.info.onActiveStatusChange?.(this);
+    this.info.onStatusChange?.(this);
     return true;
   }
 

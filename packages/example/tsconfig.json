@@ -11,9 +11,10 @@
     "baseUrl": ".",
     "noEmit": true,
     "paths": {
-      "@lyonbot/interactive-blocks": ["../src/index.ts"]
+      "@lyonbot/interactive-blocks": ["../interactive-blocks/src/index.ts"]
     }
   },
-  "references": [{ "path": "../tsconfig.json" }],
-  "include": ["./**/*"]
+  "references": [{ "path": "../interactive-blocks/tsconfig.json" }],
+  "include": ["./**/*"],
+  "exclude": ["node_modules"]
 }

@@ -138,11 +138,15 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     hiddenInput.addEventListener("focus", () => {
       this.hasFocus = true;
       this.emit("focus", this);
+      this.activeBlocks.forEach(block => block.info.onStatusChange?.(block));
+      this.activeSlot?.info.onStatusChange?.(this.activeSlot);
     }, false);
     hiddenInput.addEventListener("blur", () => {
       this.hasFocus = false;
       this._lastActiveElement = null;
       this.emit("blur", this);
+      this.activeBlocks.forEach(block => block.info.onStatusChange?.(block));
+      this.activeSlot?.info.onStatusChange?.(this.activeSlot);
     }, false);
     hiddenInput.addEventListener("keydown", (ev) => {
       const opts = this.options;

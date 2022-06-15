@@ -12,7 +12,12 @@ export interface BlockInfo {
    */
   ref?: any;
 
-  onActiveStatusChange?(element: BlockHandler): void;
+  /**
+   * called when `isActive` or `hasFocus` is changed.
+   *
+   * when triggered, you shall update the appearance.
+   */
+  onStatusChange?(element: BlockHandler): void;
 }
 
 export class BlockHandler {
@@ -36,12 +41,16 @@ export class BlockHandler {
     return this._activeNumber !== false;
   }
 
+  get hasFocus() {
+    return this.isActive && this.ctx.hasFocus;
+  }
+
   get ref() {
     return this.info.ref;
   }
 
   /**
-   * update `activeNumber` and invoke `onActiveStatusChange`, if `activeNumber` is actually changed
+   * update `activeNumber` and invoke `onStatusChange`, if `activeNumber` is actually changed
    *
    * @internal
    * @param value new activeNumber
@@ -50,7 +59,7 @@ export class BlockHandler {
   _maybeUpdateActiveNumber(value: number | false) {
     if (this._activeNumber === value) return false;
     this._activeNumber = value;
-    this.info.onActiveStatusChange?.(this);
+    this.info.onStatusChange?.(this);
     return true;
   }
 
