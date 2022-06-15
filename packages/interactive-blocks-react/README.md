@@ -2,7 +2,7 @@
 
 This package helps you integrate [interactive-blocks](https://lyonbot.github.io/interactive-blocks/) to your ⚛️ React app, with 🪝 React Hooks API.
 
-- [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react/example) | [Try with StackBlitz](https://stackblitz.com/github/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react/example)
+- [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/example-react-simple) | [Try with StackBlitz](https://stackblitz.com/github/lyonbot/interactive-blocks/tree/main/packages/example-react-simple)
 
 ## Usage
 
@@ -19,7 +19,6 @@ More guides can be found after the scaffolding.
 
 ```jsx
 import { ReactInteractiveBlocksRoot, useLatestRef, useNewBlockHandler, useNewSlotHandler } from "@lyonbot/interactive-blocks-react";
-import { removeItems } from "@lyonbot/interactive-blocks";   // very useful util function
 
 // in <App>
 
@@ -167,7 +166,12 @@ When cut (wiping out blocks), you can use `removeItems` to remove items from the
 
 ```js
 const newList = oldList.slice(); // copy old list
-removeItems(newList, action.indexes); // delete items
+
+// delete items one-by-one
+action.indexesDescending.forEach(index => {
+  newList.splice(index, 1);
+})
+
 *** // ❗ now, submit the newList to the state
 ```
 

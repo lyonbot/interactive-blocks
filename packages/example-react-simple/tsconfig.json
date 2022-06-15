@@ -10,10 +10,10 @@
     "allowJs": true,
     "baseUrl": ".",
     "paths": {
-      "@lyonbot/interactive-blocks-react": ["../src/index"]
+      "@lyonbot/interactive-blocks-react": ["../interactive-blocks-react/src/index"]
     }
   },
-  "references": [{ "path": "../tsconfig.json" }],
+  "references": [{ "path": "../interactive-blocks-react/tsconfig.json" }],
   "include": ["./src/**/*"],
   "exclude": ["node_modules"]
 }
