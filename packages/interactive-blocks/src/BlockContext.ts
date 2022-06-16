@@ -570,7 +570,8 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
     if (multipleSelect === "ctrl") {
       // discontinuous multiple-selection
-      this.activeBlocks.add(currBlock);
+      if (this.activeBlocks.has(currBlock)) this.activeBlocks.delete(currBlock);
+      else this.activeBlocks.add(currBlock);
     }
 
     if (multipleSelect === "shift") {
