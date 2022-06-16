@@ -21,6 +21,9 @@ export const IbSlot = IBSlotMixin.extend({
     // set to false to prevent if you want to manually attach
     delegateEvents: { type: Boolean, default: true },
 
+    // before pasting items, convert data one-by-one
+    transformData: { type: Function, default: null },
+
     options: { type: Object, default: null },  // other SlotInfo, only works when init
   },
   data() {
@@ -65,14 +68,17 @@ export const IbSlot = IBSlotMixin.extend({
           }
         },
         onPaste: (action) => {
+          let items = [...action.data.blocksData];
+          if (typeof this.transformData === "function") items = items.map(this.transformData as any);
+
           if (this.value) {
             // immutable style -- using "value" prop
             const newList = this.value.slice();
-            newList.splice(action.index, 0, ...action.data.blocksData);
+            newList.splice(action.index, 0, ...items);
             this.$emit("change", newList);
           } else if (this.list) {
             // mutable style -- using "list" prop
-            this.list.splice(action.index, 0, ...action.data.blocksData);
+            this.list.splice(action.index, 0, ...items);
           } else {
             throw new Error("You must provide one of this props: value or list");
           }

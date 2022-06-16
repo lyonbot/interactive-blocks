@@ -2,7 +2,7 @@
 
 This package helps you integrate [interactive-blocks](https://lyonbot.github.io/interactive-blocks/) to your ⚛️ React app, with 🪝 React Hooks API.
 
-- [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/example-react-simple) | [Try with StackBlitz](https://stackblitz.com/github/lyonbot/interactive-blocks/tree/main/packages/example-react-simple)
+- [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/example-react-simple) | [Try with StackBlitz](https://stackblitz.com/github/lyonbot/interactive-blocks/tree/main/packages/example-react-simple) | [Source Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react)
 
 ## Usage
 

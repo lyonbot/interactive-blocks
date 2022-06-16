@@ -10,10 +10,12 @@
       :index="index"
       :value="item"
     />
+
     <button
       class="mySlot-addButton"
       @click="addItem"
     >+</button>
+
   </ib-slot>
 </template>
 
