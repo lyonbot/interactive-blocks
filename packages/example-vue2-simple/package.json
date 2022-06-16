@@ -1,0 +1,24 @@
+{
+  "name": "@lyonbot/interactive-blocks-react-demo",
+  "private": true,
+  "description": "interactive-blocks-react demo",
+  "authors": "lyonbot",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@lyonbot/interactive-blocks": "^1.0.7",
+    "@lyonbot/interactive-blocks-vue2": "^1.0.0",
+    "vue": "^2.6.0"
+  },
+  "devDependencies": {
+    "rimraf": "^3.0.2",
+    "sass": "^1.52.3",
+    "typescript": "^4.4.3",
+    "vite": "^2.6.5",
+    "vite-plugin-vue2": "^2.0.1",
+    "vue-template-compiler": "^2.6.0"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "ES2015",
+    "moduleResolution": "node",
+    "noEmit": true,
+    "target": "ES2019",
+    "strict": true,
+    "composite": true,
+    "jsx": "react",
+    "allowJs": true,
+    "baseUrl": "."
+  },
+  "include": ["./src/**/*"],
+  "exclude": ["node_modules"]
+}

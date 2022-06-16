@@ -24,6 +24,7 @@ These keyboard shortcuts are supported!
 ## How to Integrate
 
 - React: [@lyonbot/interactive-blocks-react](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react)
+- Vue 2: [@lyonbot/interactive-blocks-vue2](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-vue2)
 
 This lib works with any framework, including React and Vue. Example is written with React.
 

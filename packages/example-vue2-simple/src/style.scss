@@ -1,0 +1,58 @@
+$highlightColor: #369;
+
+.myBlock {
+  background-color: #f0f0f0;
+  padding: 20px;
+  box-shadow: 0 2px 5px #0003;
+
+  &.isActive {
+    outline: 1px solid $highlightColor;
+  }
+
+  &.hasFocus {
+    outline: 2px solid $highlightColor;
+  }
+}
+
+.mySlot {
+  background-color: #e9e9e9;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  &.isActive {
+    // maybe not necessary?
+    // outline: 1px dotted $highlightColor; 
+  }
+
+  &.hasFocus {
+    outline: 2px dashed $highlightColor;
+  }
+}
+
+//-----------------------
+
+.myBlock-name {
+  border: 0;
+  font-size: 1.25em;
+  font-weight: bold;
+  background-color: #fff3;
+  margin-bottom: 20px;
+}
+
+.mySlot-addButton {
+  cursor: pointer;
+  font-size: 24px;
+  border: 0;
+  background: transparent;
+  color: #ccc;
+  margin: auto;
+  width: 30%;
+
+  &:hover,
+  &:focus {
+    color: $highlightColor;
+    background: #fff3;
+  }
+}

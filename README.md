@@ -27,6 +27,5 @@ This lib works with any framework, including React and Vue. Example is written w
 
 [📖 Read document with Docsify](https://lyonbot.github.io/interactive-blocks/docs/)
 
-1. [Basic Setup](./docs/basic-setup.md)
-
-2. [Drag and Drop](./docs/drag-and-drop.md) -- read "basic setup" first
+- [React](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-react)
+- [Vue 2](https://github.com/lyonbot/interactive-blocks/tree/main/packages/interactive-blocks-vue2)

@@ -1,5 +1,5 @@
 {
-  "name": "@lyonbot/interactive-blocks-react",
+  "name": "@lyonbot/interactive-blocks-vue2",
   "authors": "lyonbot",
   "main": "dist/index.js",
   "version": "1.0.0",
@@ -16,17 +16,18 @@
     "build": "tsc",
     "dev": "tsc -w",
     "start": "run-p dev start:example",
-    "start:example": "cd ../example-react-simple && npm start"
+    "start:example": "cd ../example-vue2-simple && npm start"
   },
   "dependencies": {
     "@lyonbot/interactive-blocks": "^1.0.6"
   },
   "peerDependencies": {
-    "react": ">=16.8"
+    "vue": "^2.5.0"
   },
   "devDependencies": {
-    "@types/react": "^18.0.12",
     "rimraf": "^3.0.2",
-    "typescript": "^4.4.3"
+    "typescript": "^4.4.3",
+    "vite": "^2.6.5",
+    "vue": "^2.5.0"
   }
 }
