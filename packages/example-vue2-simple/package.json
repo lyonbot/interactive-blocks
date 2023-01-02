@@ -3,14 +3,14 @@
   "private": true,
   "description": "interactive-blocks-vue2 demo",
   "authors": "lyonbot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "scripts": {
     "start": "vite",
     "build": "vite build"
   },
   "dependencies": {
-    "@lyonbot/interactive-blocks": "^1.0.7",
-    "@lyonbot/interactive-blocks-vue2": "^1.0.0",
+    "@lyonbot/interactive-blocks": "^1.1.0",
+    "@lyonbot/interactive-blocks-vue2": "^1.1.0",
     "vue": "^2.6.0"
   },
   "devDependencies": {

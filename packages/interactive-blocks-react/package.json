@@ -2,7 +2,7 @@
   "name": "@lyonbot/interactive-blocks-react",
   "authors": "lyonbot",
   "main": "dist/index.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"
@@ -19,7 +19,7 @@
     "start:example": "cd ../example-react-simple && npm start"
   },
   "dependencies": {
-    "@lyonbot/interactive-blocks": "^1.0.6"
+    "@lyonbot/interactive-blocks": "^1.1.0"
   },
   "peerDependencies": {
     "react": ">=16.8"

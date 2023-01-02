@@ -1,7 +1,7 @@
 {
   "name": "example",
   "authors": "lyonbot",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "scripts": {
     "clean": "rimraf dist",
@@ -9,8 +9,8 @@
     "dev": "vite -c vite.config.js --open"
   },
   "dependencies": {
-    "@lyonbot/interactive-blocks": "^1.0.6",
-    "@lyonbot/interactive-blocks-react": "^1.0.0",
+    "@lyonbot/interactive-blocks": "^1.1.0",
+    "@lyonbot/interactive-blocks-react": "^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },
