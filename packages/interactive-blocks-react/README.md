@@ -6,19 +6,25 @@ This package helps you integrate [interactive-blocks](https://lyonbot.github.io/
 
 ## Usage
 
-All you need is writing a **Block component** and a **Slot Component**, and use them inside `<ReactInteractiveBlocksRoot>`
+All you need is
 
-To integrate with your state management (Redux, Mobx, Recoil, immer, etc.), you have to accomplish the following:
+- write a **Block component**
+- write a **Slot Component**, which lists your Blocks inside
+  - a Block can also contain sub-Slots inside
+- finally, render Blocks and Slots in a `<ReactInteractiveBlocksRoot>`
+
+You can integrate with your state management (Redux, Mobx, Recoil, immer, etc.):
 
 - In Block Component: `index` and `data` getter functions
 - In Slot Component: `onCut` and `onPaste` callbacks
-
-More guides can be found after the scaffolding.
+- More details can be found below.
 
 ### Basic Scaffolding
 
+Details can be found after this scaffolding code.
+
 ```jsx
-import { ReactInteractiveBlocksRoot, useLatestRef, useNewBlockHandler, useNewSlotHandler } from "@lyonbot/interactive-blocks-react";
+import { ReactInteractiveBlocksRoot, useLatestRef, useBlockHandler, useSlotHandler } from "@lyonbot/interactive-blocks-react";
 
 // in <App>
 
@@ -31,7 +37,7 @@ import { ReactInteractiveBlocksRoot, useLatestRef, useNewBlockHandler, useNewSlo
 
 function MyBlock(props) {
   const [statusClassNames, setStatusClassNames] = React.useState("");
-  const { handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(() => ({
+  const { divProps, BlockWrapper } = useBlockHandler(() => ({
     index: () => ***,  // ❗ a getter function, returning index
     data: () => ***,   // ❗ a getter function, returning current block's data (for onPaste)
     onStatusChange: (block) => {
@@ -45,13 +51,11 @@ function MyBlock(props) {
 
   // ............
   // ❗ 1. Must be wrapped by <BlockWrapper>
-  // ❗ 2. Must have tabIndex={-1}
-  // ❗ 3.           onPointerUp={handleBlockPointerUp}
+  // ❗ 2. Must have {...divProps}
 
   return <BlockWrapper>
     <div
-      tabIndex={-1}
-      onPointerUp={handleBlockPointerUp}
+      {...divProps}
       className={`myBlock ${statusClassNames}`}
     >
 
@@ -67,7 +71,7 @@ function MyBlock(props) {
 
 export function MySlot(props) {
   const [statusClassNames, setStatusClassNames] = React.useState("");
-  const { handleSlotPointerUp, SlotWrapper } = useNewSlotHandler(() => ({
+  const { divProps, SlotWrapper } = useSlotHandler(() => ({
     onStatusChange: (slot) => {
       let ans = "";
       if (slot.isActive) ans += " isActive";
@@ -94,17 +98,15 @@ export function MySlot(props) {
 
   // ............
   // ❗ 1. Must be wrapped by <SlotWrapper>
-  // ❗ 2. Must have tabIndex={-1}
-  // ❗ 3.           onPointerUp={handleSlotPointerUp}
+  // ❗ 2. Must have {...divProps}
 
   return <SlotWrapper>
     <div
-      tabIndex={-1}
-      onPointerUp={handleSlotPointerUp}
+      {...divProps}
       className={`mySlot ${statusClassNames}`}
     >
 
-      {/* render sub-blocks here */}
+      {/* render sub-block list here */}
       <MyBlock .... />
 
     </div>
@@ -114,14 +116,14 @@ export function MySlot(props) {
 
 ## Integrate with your state management
 
-As mentioned above, you have to accomplish the following:
+As mentioned above, you have to write...
 
 - In Block Component: `index` and `data` getter functions
 - In Slot Component: `onCut` and `onPaste` callbacks
 
 ### Don't directly use `props` and state
 
-In `useNew***Handler`, the initializer function only executes once, therefore, **you can't directly use `props` and state inside it ❗**. The closure captures the first props and never update!
+In `useBlockHandler` and `useSlotHandler`, the initializer function only executes once, therefore, **you can't directly use `props` and state inside it ❗**. The closure captures the first props and never update!
 
 To solve this kludge problem, you can use `useLatestRef` to make a ref, and keep it synchronized with the latest props and state values.
 
@@ -132,7 +134,7 @@ import { useLatestRef } from "@lyonbot/interactive-blocks-react";
 
 function MyBlock(props) {
   const propsRef = useLatestRef(props);  // 👈  new
-  const { handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(() => ({
+  const { handleBlockPointerUp, BlockWrapper } = useBlockHandler(() => ({
     index: () => propsRef.current.index,  // 👈  always get latest "index" prop
     data: () => propsRef.current.value,   // 👈  always get latest "value" prop
     ...
@@ -162,7 +164,9 @@ You must have noticed `onCut` and `onPaste` callbacks.
 - If you are using global state management, you can use `dispatch` to update data here.
 - If you want to invoke callbacks from props, you can do it like `propsRef.current.onChange(...)`
 
-When cut (wiping out blocks), you can use `removeItems` to remove items from the list.
+#### onCut
+
+When delete blocks (cut), you can use `indexesDescending` to **safely** remove items from the list.
 
 ```js
 const newList = oldList.slice(); // copy old list
@@ -175,7 +179,9 @@ action.indexesDescending.forEach(index => {
 *** // ❗ now, submit the newList to the state
 ```
 
-When paste (inserting blocks), you can read Block `data` getter function's output, and insert them into the list.
+#### onPaste
+
+When insert blocks (paste), you can read Block `data` getter function's output, and insert them into the list.
 
 ```js
 const newList = oldList.slice(); // copy old list
@@ -223,10 +229,10 @@ In your Block component, you can get `blockHandler` and use it like this:
 
 ```jsx
 const {
-  handleBlockPointerUp,
+  divProps,
   BlockWrapper,
   blockHandler, // 👈  new
-} = useNewBlockHandler(() => ({
+} = useBlockHandler(() => ({
   /* options */
 }));
 
@@ -247,10 +253,10 @@ In your Slot component, you can get `slotHandler`:
 
 ```jsx
 const {
-  handleSlotPointerUp,
+  divProps,
   SlotWrapper,
   slotHandler, // 👈  new
-} = useNewSlotHandler(() => ({
+} = useSlotHandler(() => ({
   /* options */
 }));
 

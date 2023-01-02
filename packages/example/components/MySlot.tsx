@@ -2,7 +2,7 @@
 import * as React from "react";
 import { memo } from "react";
 import { useMemo } from "react";
-import { useNewSlotHandler } from "@lyonbot/interactive-blocks-react";
+import { useSlotHandler } from "@lyonbot/interactive-blocks-react";
 import { useForceUpdate } from "../hooks";
 import { useStore } from "../store";
 import { classnames, clipboardDataToMyDataItem, getPathFromOwnerBlock } from "../utils";
@@ -11,7 +11,7 @@ export const MySlot = memo(function MySlot(props: { children: React.ReactNode })
   const [, dispatch] = useStore();
   const forceUpdate = useForceUpdate();
 
-  const { ownerBlock, blockContext, slotHandler, handleSlotPointerUp, SlotWrapper } = useNewSlotHandler(() => ({
+  const { ownerBlock, blockContext, slotHandler, handleSlotPointerUp, SlotWrapper } = useSlotHandler(() => ({
     onCut: (action) =>
       dispatch({
         path: getPathFromOwnerBlock(ownerBlock),

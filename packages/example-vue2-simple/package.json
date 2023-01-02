@@ -1,7 +1,7 @@
 {
-  "name": "@lyonbot/interactive-blocks-react-demo",
+  "name": "@lyonbot/interactive-blocks-vue2-demo",
   "private": true,
-  "description": "interactive-blocks-react demo",
+  "description": "interactive-blocks-vue2 demo",
   "authors": "lyonbot",
   "version": "1.0.0",
   "scripts": {

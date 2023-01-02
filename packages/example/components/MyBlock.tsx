@@ -7,7 +7,7 @@ import { myDataItemToClipboardData, getPathFromOwnerBlock, classnames, getRandom
 import { MySlot } from "./MySlot";
 
 import type { BlockHandler } from "@lyonbot/interactive-blocks";
-import { useNewBlockHandler } from "@lyonbot/interactive-blocks-react";
+import { useBlockHandler } from "@lyonbot/interactive-blocks-react";
 
 export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDataItem }) {
   const { index, item } = props;
@@ -16,7 +16,7 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
   const propsCache = useRef<{ index: number; item: MyDataItem }>();
   useImperativeHandle(propsCache, () => ({ index, item }), [index, item]);
 
-  const { blockContext, blockHandler, handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(
+  const { blockContext, blockHandler, handleBlockPointerUp, BlockWrapper } = useBlockHandler(
     () => ({
       data: () => myDataItemToClipboardData(propsCache.current!.item),
       index: () => propsCache.current!.index,

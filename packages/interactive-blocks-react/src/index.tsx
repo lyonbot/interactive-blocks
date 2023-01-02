@@ -60,7 +60,7 @@ export const useOwnerBlock = () => useContext(ReactIBBlockContext);
 /**
  * For custom slot component
  */
-export function useNewSlotHandler(getSlotInfo: () => SlotInfo) {
+export function useSlotHandler(getSlotInfo: () => SlotInfo) {
   const blockContext = useContext(ReactIBRootContext);
   const ownerBlock = useContext(ReactIBBlockContext); // could be null if this slot is directly under Root
 
@@ -86,33 +86,38 @@ export function useNewSlotHandler(getSlotInfo: () => SlotInfo) {
     };
   }, [slotHandler]);
 
-  const returns = useMemo(
-    () => ({
+  const returns = useMemo(() => {
+    function handleSlotPointerUp(ev: any) {
+      slotHandler.handlePointerUp();
+      // slotHandler.handlePointerUpCapture();  // or if in capture phase
+
+      // make copy / cut / paste keyboard shortcuts work
+      // a hidden input will be focused
+      if (isTargetActiveElement(ev.currentTarget)) blockContext!.focus();
+    }
+
+    return ({
       blockContext,
       ownerBlock,
       slotHandler,
-      handleSlotPointerUp(ev: any) {
-        slotHandler.handlePointerUp();
-        // slotHandler.handlePointerUpCapture();  // or if in capture phase
-
-        // make copy / cut / paste keyboard shortcuts work
-        // a hidden input will be focused
-        if (isTargetActiveElement(ev.currentTarget)) blockContext.focus();
+      handleSlotPointerUp,
+      divProps: {
+        tabIndex: -1,
+        onPointerUp: handleSlotPointerUp,
       },
       SlotWrapper: (props: React.PropsWithChildren) => (
         <ReactIBSlotContext.Provider value={slotHandler}>
           {props.children}
         </ReactIBSlotContext.Provider>
       ),
-    }),
-    []
-  );
+    });
+  }, []);
   return returns;
 }
 
 // for block component
 
-export function useNewBlockHandler(getBlockInfo: () => BlockInfo) {
+export function useBlockHandler(getBlockInfo: () => BlockInfo) {
   const blockContext = useContext(ReactIBRootContext);
   const ownerSlot = useContext(ReactIBSlotContext); // could be null if this block is directly under Root
 
@@ -138,27 +143,32 @@ export function useNewBlockHandler(getBlockInfo: () => BlockInfo) {
     };
   }, [blockHandler]);
 
-  const returns = useMemo(
-    () => ({
+  const returns = useMemo(() => {
+    function handleBlockPointerUp(ev: any) {
+      blockHandler.handlePointerUp();
+      // slotHandler.handlePointerUpCapture();  // or if in capture phase
+      // make copy / cut / paste keyboard shortcuts work
+      // a hidden input will be focused
+      if (isTargetActiveElement(ev.currentTarget))
+        blockContext!.focus();
+    }
+
+    return ({
       blockContext,
       ownerSlot,
       blockHandler,
-      handleBlockPointerUp(ev: any) {
-        blockHandler.handlePointerUp();
-        // slotHandler.handlePointerUpCapture();  // or if in capture phase
-
-        // make copy / cut / paste keyboard shortcuts work
-        // a hidden input will be focused
-        if (isTargetActiveElement(ev.currentTarget)) blockContext.focus();
+      handleBlockPointerUp,
+      divProps: {
+        tabIndex: -1,
+        onPointerUp: handleBlockPointerUp,
       },
       BlockWrapper: (props: React.PropsWithChildren) => (
         <ReactIBBlockContext.Provider value={blockHandler}>
           {props.children}
         </ReactIBBlockContext.Provider>
       ),
-    }),
-    []
-  );
+    });
+  }, []);
 
   return returns;
 }
@@ -175,7 +185,7 @@ function isTargetActiveElement(target: any) {
 // utils
 
 export function useLatestRef<T = any>(value: T) {
-  const ref = useRef<T | null>(null);
+  const ref = useRef<T>(value);
   ref.current = value;
 
   return ref;

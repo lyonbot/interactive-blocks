@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useLatestRef, useNewSlotHandler } from "@lyonbot/interactive-blocks-react";
+import { useLatestRef, useSlotHandler } from "@lyonbot/interactive-blocks-react";
 import { store, DataItem } from "../store";
 import { MyBlock } from "./MyBlock";
 import { PathArray } from "../utils/createStore";
@@ -14,10 +14,12 @@ export function MySlot(props: { path: PathArray }) {
   const value = store.use(props.path) as DataItem[] | undefined;
 
   /**
-   * ❗ solve the React Hook closure kludge with useLatestRef
+   * ❗ `useSlotHandler` only run once,
+   *    therefore, to read latest props value inside it, we need a consistent Ref `propsRef`
+   *    and use `propsRef.current` to get the newest prop values
    */
   const propsRef = useLatestRef(props);
-  const { handleSlotPointerUp, SlotWrapper } = useNewSlotHandler(() => ({
+  const { divProps, SlotWrapper } = useSlotHandler(() => ({
     onStatusChange: (slot) => {
       let ans = "";
       if (slot.isActive) ans += " isActive";
@@ -68,11 +70,10 @@ export function MySlot(props: { path: PathArray }) {
 
   // ............
   // ❗ 1. Must be wrapped by <SlotWrapper>
-  // ❗ 2. Must have tabIndex={-1}
-  // ❗ 3.           onPointerUp={handleSlotPointerUp}
+  // ❗ 2. Must have {...divProps}
 
   return <SlotWrapper>
-    <div tabIndex={-1} onPointerUp={handleSlotPointerUp} className={`mySlot ${statusClassNames}`}>
+    <div {...divProps} className={`mySlot ${statusClassNames}`}>
       {value?.map((item, index) => <MyBlock key={index} path={[...props.path, index]} />)}
 
       <button className="mySlot-addButton" onClick={addItem}>+</button>

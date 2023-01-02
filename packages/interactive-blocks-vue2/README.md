@@ -6,19 +6,7 @@ This package helps you integrate [interactive-blocks](https://lyonbot.github.io/
 
 ## Usage
 
-It's too tedious to describe. Please check out the [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/example-vue2-simple)
-
-Here are some points that need attention.
-
-### 💅 Styling
-
-When blocks and slots get active and focused, they will get `isActive` and `hasFocus` classes.
-
-You can change this name by passing `is-active-class="my-active-class"` and `has-focus-class="my-focus-class"` to the component.
-
-You can use `tag-name="section"` to use other dom tag name rather than "div".
-
-We don't provide default styles. Please implement your own styles.
+The starter guide is moved to the [Example Code](https://github.com/lyonbot/interactive-blocks/tree/main/packages/example-vue2-simple)
 
 ### 🧩 Provide Data to `<ib-block>`
 
@@ -37,10 +25,32 @@ You must choose one of these ways to pass the array:
 
   When the array content is changed, the array is directly updated.
 
-### ✈️ Data Transformation
+### 💅 Styling
 
-Copying and pasting will take `value` prop from `<ib-block>`
+(for `<ib-slot>` and `<ib-block>`)
 
-You can set `transfrom-data="myTransfromMethod"` to `<ib-slot>`, and it will transform the data while pasting, before pushing into the array.
+When blocks and slots get active and focused, they will get `class="isActive"` and / or `class="hasFocus"`.
 
-- `myTransfromMethod` takes the value and returns a new value.
+We don't provide default styles. Please implement your own styles.
+
+- To use other class names, set `is-active-class="my-active-class"` and `has-focus-class="my-focus-class"`
+
+- To use other tag name rather than "div", set `tag-name="section"`
+
+
+### ✈️ Copy, Paste, Data Transform
+
+When copy a block, we directly serialize `value` of `<ib-block>` to JSON, and write to clipboard.
+
+When paste one or more blocks, the JSON objects will be directly pushed into the array that bound to `<ib-slot>`
+
+If you want to transform the data, before pushing into the array, you can set `transform-data="myTransformMethod"` to `<ib-slot>`. For example:
+
+```js
+myTransformMethod(rawObject) {
+  return {
+    ...rawObject,
+    id: uuid(),  // always make a new id when pasting
+  }
+}
+```

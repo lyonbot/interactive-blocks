@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useLatestRef, useNewBlockHandler } from "@lyonbot/interactive-blocks-react";
+import { useLatestRef, useBlockHandler } from "@lyonbot/interactive-blocks-react";
 import { store, DataItem } from "../store";
 import { MySlot } from "./MySlot";
 import { PathArray } from "../utils/createStore";
@@ -14,10 +14,12 @@ export function MyBlock(props: { path: PathArray }) {
   const value = store.use(props.path) as DataItem;
 
   /**
-   * ❗ solve the React Hook closure kludge with useLatestRef
+   * ❗ `useBlockHandler` only run once,
+   *    therefore, to read latest props value inside it, we need a consistent Ref `propsRef`
+   *    and use `propsRef.current` to get the newest prop values
    */
   const propsRef = useLatestRef(props);
-  const { handleBlockPointerUp, BlockWrapper } = useNewBlockHandler(() => ({
+  const { divProps, BlockWrapper } = useBlockHandler(() => ({
 
     // ❗ a getter function, returning index
     index: () => {
@@ -51,11 +53,10 @@ export function MyBlock(props: { path: PathArray }) {
 
   // ............
   // ❗ 1. Must be wrapped by <BlockWrapper>
-  // ❗ 2. Must have tabIndex={-1}
-  // ❗ 3.           onPointerUp={handleBlockPointerUp}
+  // ❗ 2. Must have {...divProps}
 
   return <BlockWrapper>
-    <div tabIndex={-1} onPointerUp={handleBlockPointerUp} className={`myBlock ${statusClassNames}`}>
+    <div {...divProps} className={`myBlock ${statusClassNames}`}>
       <input type="text" value={value.name} onChange={handleNameChange} className="myBlock-name" />
       <MySlot path={[...props.path, "children"]} />
     </div>

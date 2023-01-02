@@ -2,6 +2,7 @@
 
 import { SlotInfo } from "@lyonbot/interactive-blocks";
 import { IBSlotMixin } from "../mixins";
+import type { PropOptions } from "vue";
 
 export const IbSlot = IBSlotMixin.extend({
   name: "IbSlot",
@@ -10,7 +11,7 @@ export const IbSlot = IBSlotMixin.extend({
     event: "change",
   },
   props: {
-    value: { type: Array, default: null },
+    value: { /* type: Array, */ default: null } as PropOptions<any[] | undefined | null>,
     list: { type: Array, default: null },
 
     isActiveClass: { type: String, default: "isActive" },
@@ -52,12 +53,15 @@ export const IbSlot = IBSlotMixin.extend({
     // ------------------------------- internal -------------------------------
 
     ibGetOptions() {
+      /** check if "value" prop is set, even if it's `undefined` */
+      const isUseImmutableMode = () => "value" in this.$props;
+
       const ans: SlotInfo = {
         ref: this,
         onCut: (action) => {
-          if (this.value) {
+          if (isUseImmutableMode()) {
             // immutable style -- using "value" prop
-            const newList = this.value.slice();
+            const newList = this.value?.slice() || [];
             action.indexesDescending.forEach((index) => newList.splice(index, 1));
             this.$emit("change", newList);
           } else if (this.list) {
@@ -71,9 +75,9 @@ export const IbSlot = IBSlotMixin.extend({
           let items = [...action.data.blocksData];
           if (typeof this.transformData === "function") items = items.map(this.transformData as any);
 
-          if (this.value) {
+          if (isUseImmutableMode()) {
             // immutable style -- using "value" prop
-            const newList = this.value.slice();
+            const newList = this.value?.slice() || [];
             newList.splice(action.index, 0, ...items);
             this.$emit("change", newList);
           } else if (this.list) {
