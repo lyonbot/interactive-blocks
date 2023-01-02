@@ -1,7 +1,7 @@
-import { BlockHandler } from "./BlockHandler";
-import { SlotHandler } from "./SlotHandler";
+import { BlockDOMEventHandlers, BlockHandler } from "./BlockHandler";
+import { SlotDOMEventHandlers, SlotHandler } from "./SlotHandler";
 import { BlockContext } from "./BlockContext";
-import { EventKeyStyle, getStyledEventHandlersLUT, throttle } from "./utils";
+import { FirstParameter, throttle } from "./utils";
 import { EventEmitter } from "./EventEmitter";
 import { IBMoveBetweenSlotsAction, IBMoveInSlotAction, IBSlotBeforeDropAction } from "./action";
 import { reduce } from "./itertools";
@@ -148,16 +148,16 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
 
   // -----------------------------------
 
-  getDefaultBlockEventHandlers<T extends EventKeyStyle>(block: BlockHandler, style: T) {
-    return getStyledEventHandlersLUT({
+  getBlockDOMEventHandlers(block: BlockHandler): Partial<BlockDOMEventHandlers> {
+    return {
       dragStart: this.handleBlockDragStart.bind(this, block),
       dragEnd: this.handleBlockDragEnd.bind(this, block),
       dragOver: this.handleBlockDragOver.bind(this, block),
       dragLeave: this.handleBlockDragLeave.bind(this, block),
-    }, style);
+    };
   }
 
-  handleBlockDragStart(block: BlockHandler, ev: DragEvent) {
+  handleBlockDragStart(block: BlockHandler, ev: FirstParameter<BlockDOMEventHandlers["dragStart"]>) {
     const dataTransfer = ev.dataTransfer;
     if (!dataTransfer) return;
 
@@ -174,7 +174,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
       ctx: this.ctx,
       currentBlock: block,
       dataTransfer,
-      event: ev,
+      event: ev as DragEvent,
     });
 
     block.info.onDragStart?.(action);
@@ -208,7 +208,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
     }
   }
 
-  handleBlockDragEnd(block: BlockHandler, ev: DragEvent) {
+  handleBlockDragEnd() {
     this.slotOfDraggingBlocks = void 0;
     this.draggingBlocks = void 0;
     this.setHoveringSlot(void 0);
@@ -230,47 +230,47 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
 
   // -----------------------------------
 
-  getDefaultSlotEventHandlers<T extends EventKeyStyle>(slot: SlotHandler, style: T) {
-    return getStyledEventHandlersLUT({
-      dragOver: (ev: DragEvent) => {
+  getSlotDOMEventHandlers(slot: SlotHandler): Partial<SlotDOMEventHandlers> {
+    return {
+      dragOver: (ev) => {
         if (!this.handleSlotDragOver(slot, ev)) return;
 
         ev.preventDefault();
         ev.stopPropagation();
       },
 
-      dragLeave: (ev: DragEvent) => {
+      dragLeave: (ev) => {
         this.handleSlotDragLeave(slot);
 
         ev.preventDefault();
         ev.stopPropagation();
       },
 
-      drop: (ev: DragEvent) => {
+      drop: (ev) => {
         this.handleSlotDrop(slot, ev);
 
         ev.preventDefault();
         ev.stopPropagation();
       },
-    }, style);
+    };
   }
 
-  handleSlotDragOver(slot: SlotHandler, ev: DragEvent) {
+  handleSlotDragOver(slot: SlotHandler, ev: FirstParameter<SlotDOMEventHandlers["dragOver"]>) {
     // if dragSource is a BlockContext, check the brand of BlockContext
     if (
       ev.dataTransfer?.types.includes(MIME_CTX_UUID) &&
       !ev.dataTransfer.types.includes(`${MIME_CTX_BRAND_LEADING}${this.ctx.brand}`)
     ) return false;
 
-    const indexToDrop = this.computeIndexToDrop(slot, ev);
+    const indexToDrop = this.computeIndexToDrop(slot, ev as DragEvent);
     if (indexToDrop === false) return false; // not droppable
 
     this.setHoveringSlot(slot, indexToDrop);
     return true;
   }
 
-  handleSlotDrop(slot: SlotHandler, ev: DragEvent) {
-    const indexToDrop = this.computeIndexToDrop(slot, ev);
+  handleSlotDrop(slot: SlotHandler, ev: FirstParameter<SlotDOMEventHandlers["dragOver"]>) {
+    const indexToDrop = this.computeIndexToDrop(slot, ev as DragEvent);
     if (indexToDrop === false) return; // not droppable
 
     const dropEffect = this.dropEffect!;
@@ -285,7 +285,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
       slot,
       dropEffect,
       dataTransfer: ev.dataTransfer!,
-      event: ev,
+      event: ev as DragEvent,
       indexToDrop,
       isDraggingFromCurrentCtx: !!blocks,
       draggingBlocks: blocks,

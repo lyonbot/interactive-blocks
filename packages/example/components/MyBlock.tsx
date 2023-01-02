@@ -16,7 +16,7 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
   const propsCache = useRef<{ index: number; item: MyDataItem }>();
   useImperativeHandle(propsCache, () => ({ index, item }), [index, item]);
 
-  const { blockContext, blockHandler, handleBlockPointerUp, BlockWrapper } = useBlockHandler(
+  const { blockContext, blockHandler, BlockWrapper } = useBlockHandler(
     () => ({
       data: () => myDataItemToClipboardData(propsCache.current!.item),
       index: () => propsCache.current!.index,
@@ -24,8 +24,8 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
     })
   );
 
-  const dragEventHandlers = useMemo(
-    () => blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react") as any,
+  const domEventHandlers = useMemo(
+    () => blockHandler.getDOMEvents("react", { draggable: true }),
     []
   );
 
@@ -50,10 +50,8 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
     <div
       className={classnames("myBlock", isActive && "isActive")}
       tabIndex={-1}
-      onPointerUp={handleBlockPointerUp}
-
       draggable
-      {...dragEventHandlers}
+      {...domEventHandlers}
     >
       {isActive && <div className="myBlock-selectIndex">{activeNumber as number + 1}</div>}
 

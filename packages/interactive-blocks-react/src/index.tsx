@@ -89,7 +89,6 @@ export function useSlotHandler(getSlotInfo: () => SlotInfo) {
   const returns = useMemo(() => {
     function handleSlotPointerUp(ev: any) {
       slotHandler.handlePointerUp();
-      // slotHandler.handlePointerUpCapture();  // or if in capture phase
 
       // make copy / cut / paste keyboard shortcuts work
       // a hidden input will be focused
@@ -146,7 +145,7 @@ export function useBlockHandler(getBlockInfo: () => BlockInfo) {
   const returns = useMemo(() => {
     function handleBlockPointerUp(ev: any) {
       blockHandler.handlePointerUp();
-      // slotHandler.handlePointerUpCapture();  // or if in capture phase
+
       // make copy / cut / paste keyboard shortcuts work
       // a hidden input will be focused
       if (isTargetActiveElement(ev.currentTarget))

@@ -606,13 +606,15 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     this.syncActiveElementStatus();
   }
 
-  handleSlotPointerUp = (slot: SlotHandler, isCapture?: boolean) => {
-    if (!isCapture && this.isFocusingSlot) return;  // capture and bubbling
+  handleSlotPointerUp = (slot: SlotHandler, ev?: Pick<PointerEvent, "eventPhase">) => {
+    const isCapture = ev && ev.eventPhase === Event.CAPTURING_PHASE;
+    if (!isCapture && this.isFocusingSlot) return;  // in bubble phase: only update isFocusingSlot once
     this.isFocusingSlot = slot;
   };
 
-  handleBlockPointerUp = (block: BlockHandler, isCapture?: boolean) => {
-    if (!isCapture && this.isFocusingBlock) return;  // capture and bubbling
+  handleBlockPointerUp = (block: BlockHandler, ev?: Pick<PointerEvent, "eventPhase">) => {
+    const isCapture = ev && ev.eventPhase === Event.CAPTURING_PHASE;
+    if (!isCapture && this.isFocusingBlock) return;  // in bubble phase: only update isFocusingBlock once
     this.isFocusingBlock = block;
   };
 

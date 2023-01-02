@@ -11,7 +11,7 @@ export const MySlot = memo(function MySlot(props: { children: React.ReactNode })
   const [, dispatch] = useStore();
   const forceUpdate = useForceUpdate();
 
-  const { ownerBlock, blockContext, slotHandler, handleSlotPointerUp, SlotWrapper } = useSlotHandler(() => ({
+  const { ownerBlock, blockContext, slotHandler, SlotWrapper } = useSlotHandler(() => ({
     onCut: (action) =>
       dispatch({
         path: getPathFromOwnerBlock(ownerBlock),
@@ -41,8 +41,8 @@ export const MySlot = memo(function MySlot(props: { children: React.ReactNode })
       }),
   }));
 
-  const dragEventHandlers = useMemo(
-    () => blockContext.dragging.getDefaultSlotEventHandlers(slotHandler, "react") as any,
+  const domEventHandlers = useMemo(
+    () => slotHandler.getDOMEvents("react", { draggable: true }),
     []
   );
 
@@ -51,8 +51,7 @@ export const MySlot = memo(function MySlot(props: { children: React.ReactNode })
   return <div
     className={classnames("mySlot", isActive && "isActive", isDragHovering && "isDragHovering")}
     tabIndex={-1}
-    onPointerUp={handleSlotPointerUp}
-    {...dragEventHandlers}
+    {...domEventHandlers}
   >
     <SlotWrapper>
       {

@@ -2,6 +2,7 @@ import type { BlockContext } from "./BlockContext";
 import type { SlotHandler, SlotInfo } from "./SlotHandler";
 import { getValueOf, ValueOrGetter } from "./ValueOrGetter";
 import { MultipleSelectType } from "./MultipleSelectType";
+import { EventKeyStyle, FirstParameter, getStyledEventHandlersLUT } from "./utils";
 
 export interface BlockInfo {
   index: ValueOrGetter<number>;
@@ -18,6 +19,14 @@ export interface BlockInfo {
    * when triggered, you shall update the appearance.
    */
   onStatusChange?(element: BlockHandler): void;
+}
+
+export interface BlockDOMEventHandlers {
+  pointerUp(ev: Pick<PointerEvent, "eventPhase">): void;
+  dragStart?(ev: Pick<DragEvent, "stopPropagation" | "dataTransfer" | "clientX" | "clientY">): void;
+  dragLeave?(ev: Pick<DragEvent, never>): void;
+  dragOver?(ev: Pick<DragEvent, never>): void;
+  dragEnd?(ev: Pick<DragEvent, never>): void;
 }
 
 export class BlockHandler {
@@ -63,8 +72,7 @@ export class BlockHandler {
     return true;
   }
 
-  handlePointerUp = () => this.ctx.handleBlockPointerUp(this, false);
-  handlePointerUpCapture = () => this.ctx.handleBlockPointerUp(this, true);
+  handlePointerUp = (ev?: FirstParameter<BlockDOMEventHandlers["pointerUp"]>) => this.ctx.handleBlockPointerUp(this, ev);
 
   /**
    * select / active this block, without focusing
@@ -116,6 +124,19 @@ export class BlockHandler {
 
   createSlot(info: SlotInfo) {
     return this.ctx.createSlot(info, this);
+  }
+
+  getDOMEvents<S extends EventKeyStyle>(
+    eventKeyStyle: S,
+    opt: { draggable?: boolean } = {}
+  ) {
+    const ans: BlockDOMEventHandlers = {
+      pointerUp: this.handlePointerUp,
+    };
+
+    if (opt.draggable) Object.assign(this.ctx.dragging.getBlockDOMEventHandlers(this));
+
+    return getStyledEventHandlersLUT(ans, eventKeyStyle);
   }
 
   dispose() {

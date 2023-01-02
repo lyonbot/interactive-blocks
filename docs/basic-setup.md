@@ -292,7 +292,6 @@ slotHandler.dispose();
 ```js
 function handlePointerUp(ev) {
   slotHandler.handlePointerUp();
-  // slotHandler.handlePointerUpCapture();  // or if in capture phase
 
   // make copy / cut / paste keyboard shortcuts work
   // a hidden input will be focused
@@ -421,7 +420,6 @@ blockHandler.dispose();
 ```js
 function handlePointerUp(ev) {
   blockHandler.handlePointerUp();
-  // blockHandler.handlePointerUpCapture();  // or if in capture phase
 
   // make copy / cut / paste keyboard shortcuts work
   // a hidden input will be focused

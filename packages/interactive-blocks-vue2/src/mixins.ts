@@ -91,7 +91,6 @@ export const IBBlockMixin = Vue.extend<{
         },
         ibHandlePointerUp(ev: any) {
           this.ibBlockHandler.handlePointerUp();
-          // slotHandler.handlePointerUpCapture();  // or if in capture phase
 
           // make copy / cut / paste keyboard shortcuts work
           // a hidden input will be focused
@@ -162,7 +161,6 @@ export const IBSlotMixin = Vue.extend<{
         },
         ibHandlePointerUp(ev: any) {
           this.ibSlotHandler.handlePointerUp();
-          // slotHandler.handlePointerUpCapture();  // or if in capture phase
 
           // make copy / cut / paste keyboard shortcuts work
           // a hidden input will be focused

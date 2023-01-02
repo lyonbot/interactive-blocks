@@ -67,30 +67,32 @@ export function moveItemsBetweenArrays(fromArr: any[], fromIndexes: number[], to
   toArr.splice(toIndex, 0, ...items);
 }
 
+export type FirstParameter<T> = T extends (arg: infer R) => any ? R : never;
 
 // eslint-disable-next-line @typescript-eslint/ban-types
-type FunctionLUT = Record<string, Function>;
+type FunctionLUT = { [k: string]: (...args: any[]) => any };
 
-export type StyledFunctionLUTs<T extends FunctionLUT> = {
-  "react": { [k in keyof T as ToReactEventKey<k>]: T[k] };
-  "lowercase": { [k in keyof T as ToLowerCaseEventKey<k>]: T[k] };
-  "camelCase": T;
+export type StyledEventLUT<T, S extends EventKeyStyle> = {
+  [K in keyof T as ToStyledEventKey<S, K>]: T[K]
 };
 
-export type EventKeyStyle = "react" | "lowercase" | "camelCase";
+export type EventKeyStyle = "react" | "vue" | "lowercase" | "camelCase";
 
-type ToReactEventKey<T> = T extends string ? `on${Capitalize<T>}` : T;
-type ToLowerCaseEventKey<T> = T extends string ? Lowercase<T> : T;
+type ToStyledEventKey<S extends EventKeyStyle, KEY> = KEY extends string ? (
+  S extends "react" ? `on${Capitalize<KEY>}` :
+    S extends "vue" | "lowercase" ? Lowercase<KEY> :
+      KEY
+) : KEY;
 
-export function getStyledEventHandlersLUT<T extends FunctionLUT, S extends EventKeyStyle>(o: T, style: S): StyledFunctionLUTs<T>[S];
+export function getStyledEventHandlersLUT<T, S extends EventKeyStyle>(o: T, style: S): StyledEventLUT<T, S>;
 export function getStyledEventHandlersLUT(o: FunctionLUT, style: EventKeyStyle) {
   if (style === "camelCase") return o;
 
   const answer = {} as FunctionLUT;
   Object.keys(o).forEach(ok => {
     let key = ok;
-    if (style === "react") key = `on${key[0]?.toUpperCase()}${key.substr(1)}`;
-    if (style === "lowercase") key = key.toLowerCase();
+    if (style === "react") key = `on${key[0]?.toUpperCase()}${key.slice(1)}`;
+    if (style === "lowercase" || style === "vue") key = key.toLowerCase();
 
     answer[key] = o[ok]!;
   });
