@@ -87,22 +87,16 @@ export function useSlotHandler(getSlotInfo: () => SlotInfo) {
   }, [slotHandler]);
 
   const returns = useMemo(() => {
-    function handleSlotPointerUp(ev: any) {
-      slotHandler.handlePointerUp();
-
-      // make copy / cut / paste keyboard shortcuts work
-      // a hidden input will be focused
-      if (isTargetActiveElement(ev.currentTarget)) blockContext!.focus();
-    }
+    const domEvents = slotHandler.getDOMEvents("react");
 
     return ({
       blockContext,
       ownerBlock,
       slotHandler,
-      handleSlotPointerUp,
+      handleSlotPointerUp: domEvents.onPointerUp,
       divProps: {
         tabIndex: -1,
-        onPointerUp: handleSlotPointerUp,
+        ...domEvents,
       },
       SlotWrapper: (props: React.PropsWithChildren) => (
         <ReactIBSlotContext.Provider value={slotHandler}>
@@ -143,23 +137,16 @@ export function useBlockHandler(getBlockInfo: () => BlockInfo) {
   }, [blockHandler]);
 
   const returns = useMemo(() => {
-    function handleBlockPointerUp(ev: any) {
-      blockHandler.handlePointerUp();
-
-      // make copy / cut / paste keyboard shortcuts work
-      // a hidden input will be focused
-      if (isTargetActiveElement(ev.currentTarget))
-        blockContext!.focus();
-    }
+    const domEvents = blockHandler.getDOMEvents("react");
 
     return ({
       blockContext,
       ownerSlot,
       blockHandler,
-      handleBlockPointerUp,
+      handleBlockPointerUp: domEvents.onPointerUp,
       divProps: {
         tabIndex: -1,
-        onPointerUp: handleBlockPointerUp,
+        ...domEvents,
       },
       BlockWrapper: (props: React.PropsWithChildren) => (
         <ReactIBBlockContext.Provider value={blockHandler}>
@@ -170,15 +157,6 @@ export function useBlockHandler(getBlockInfo: () => BlockInfo) {
   }, []);
 
   return returns;
-}
-
-function isTargetActiveElement(target: any) {
-  if (!target || typeof target.getRootNode !== "function") return false;
-
-  const root = target.getRootNode();  // do not directly use "document"
-  if (!root) return false;
-
-  return root.activeElement === target;
 }
 
 // utils

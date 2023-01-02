@@ -28,16 +28,18 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
 
   - **create**
 
-    - create a BlockContext
-    - know that keyboard events are processed by a hiddenInput
-    - handle `blur` and `focus` event and change visual feedbacks
+    - create a `new BlockContext()`
+      - (optional) provide options
+    - listen to `blur` and `focus` events, in order to change visual feedbacks
 
   - **while using**
 
+    - update style when event fires
     - call `blockContext.focus()` if need
 
-  - **css and visual feedbacks**
+  - **style and visual feedbacks**
 
+    - update style when `blur` and `focus` events fire
     - two status based on `blockContext.hasFocus`:
       1. focused
       2. blurred
@@ -46,9 +48,12 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
 
   - **create**
 
-    - inherit `blockContext` and (if exists) `ownerBlock`
-    - create a **SlotHandler** with custom `onCut` and `onPaste` implementations (examples provided below)
-    - (optional) attach a custom `ref`
+    - from ancestors, retrieve `blockContext` and (if exists) `ownerBlock`
+    - create a **SlotHandler** with customized ...
+      - `onCut(action)` - see examples below
+      - `onPaste(action)` - see examples below
+      - `onStatusChange()` - a callback to update style
+      - (optional) `ref` - custom anything
 
   - **before destroy**
 
@@ -56,26 +61,33 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
 
   - **render**
 
-    - `slotHandler` must be passed as `ownerSlot` to child blocks.
-    - add `tabIndex="-1"`
-    - add `pointerup` event listener
-    - add active (aka. selected) className when `slotHandler.isActive`
+    - ensure that children blocks can get `slotHandler` as `ownerSlot`
+    - make a `<div>` to wrap children blocks
+      - add `tabIndex="-1"`
+      - add event listeners from `slotHandler.getDOMEvents()`
+      - add style and classNames
 
-  - **css and visual feedbacks**
+  - **style and visual feedbacks**
 
-    - three status based on `slotHandler.isActive` and blockContext:
+    - update style when `onStatusChange()` is called
+    - There are 3 status based on `isActive, hasFocus` of `slotHandler`
 
-      1. inactive
-      2. active, but context is NOT focused
-      3. active and focused
+      | Expression              | Status                 | Example Style |
+      | ----------------------- | ---------------------- | ------------- |
+      | `!isActive`             | not active             | gray          |
+      | `isActive && !hasFocus` | active but not focused | dim blue      |
+      | `isActive && hasFocus`  | active                 | bright blue   |
 
 - **🧩 Block Component**
 
   - **create**
 
-    - inherit `blockContext` and (if exists) `ownerSlot`
-    - create a **BlockHandler** with custom `data` and `index` getter functions
-    - (optional) attach a custom `ref`
+    - from ancestors, retrieve `blockContext` and (if exists) `ownerSlot`
+    - create a **BlockHandler** with customized ...
+      - `data()` - getter function
+      - `index()` - getter function
+      - `onStatusChange()` - a callback to update style
+      - (optional) `ref` - custom anything
 
   - **before destroy**
 
@@ -83,42 +95,43 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
 
   - **render**
 
-    - `blockHandler` must be passed as `ownerBlock` to child slots.
-    - add `tabIndex="-1"`
-    - add `pointerup` event listener (see below)
-    - add active (aka. selected) className when `blockHandler.isActive`
+    - ensure that children slots can get `blockHandler` as `ownerBlock`
+    - make a `<div>` to wrap block content (including possible sub-slots)
+      - add `tabIndex="-1"`
+      - add event listeners from `blockHandler.getDOMEvents()`
+      - add style and classNames
+
+  - **style and visual feedbacks**
+
+    - update style when `onStatusChange()` is called
+    - There are 3 status based on `isActive, hasFocus` of `blockHandler`
+
+      | Expression              | Status                 | Example Style |
+      | ----------------------- | ---------------------- | ------------- |
+      | `!isActive`             | not active             | gray          |
+      | `isActive && !hasFocus` | active but not focused | dim blue      |
+      | `isActive && hasFocus`  | active (aka. selected) | bright blue   |
+
     - (optional) display `blockHandler.activeNumber` for multiple selection
-
-  - **css and visual feedbacks**
-
-    - three status based on `blockHandler.isActive` and blockContext:
-
-      1. inactive
-      2. active, but context is NOT focused
-      3. active and focused
 
 ## 🤔 The correct way to pass data
 
-You will pass data from one component to its (deeply nested) components! Before starting, read this part!
+As described above, a component have to retrieve something from its parent and ancestors; a component might pass something to children and descendants.
 
-Passing with **props** is simple, but it only works smoothly with directly-contained children. To pass data to deeply nested children,
-you will have to invade and modify every middleman components, adding temporary props to pass data that unrelated to them. What a mess!
+Passing with **props** is simple, but also limited. It only works smoothly with directly-contained children.
 
-Hence, I suggest you choose **Context** or **Provide & Inject**, based on your framework.
+There are better ways to pass data to deeply nested children (aka. descendants):
 
 - ⭐️ React: [Context](https://reactjs.org/docs/context.html)
 - ⭐️ Vue: provide & inject ([Vue 3](https://v3.vuejs.org/guide/component-provide-inject.html) / [Vue 2](https://vuejs.org/v2/api/#provide-inject))
 
-If the data is a _singleton_ (eg. the `blockContext`), you can also pass it via
+As described, at least we need to develop 3 components:
 
-- a global store like VueX, Redux, Recoil ...
-- ~~global variable on `window`~~
-
-Now let's start writing the components:
-
-1. MyApp (Root Component)
+1. MyApp (Root Component) -- the root, provides `blockContext` for descendants
 2. MySlot (Slot Component)
 3. MyBlock (Block Component)
+
+A hierarchical structure sample is presented below:
 
 ```xml
 <App>                               -- provides `ctx` the blockContext
@@ -177,9 +190,7 @@ blockContext.on("focus", () => {
 });
 
 blockContext.on("blur", () => {
-  console.log(
-    "Keyboard shortcuts unavailable! Click a block / slot to active."
-  );
+  console.log("Keyboard shortcuts unavailable! Click a block / slot to active.");
 });
 ```
 
@@ -249,7 +260,7 @@ const slotHandler = parent.createSlot({
 
     // or, call `action.preventDefault()` to prevent pasting
   },
-  onActiveStatusChange: () => {
+  onStatusChange: () => {
     /* change the style if needed */
   },
 });
@@ -263,7 +274,7 @@ Example code is presented above.
 
 #### Attach a Ref
 
-Additionally, you can attach `this` of your component, to `slotHandler.ref`,
+Optionally, you can attach `this` of your component, to `slotHandler.ref`,
 so you will be able to access the component instance somewhere else later.
 
 ```js
@@ -283,77 +294,73 @@ slotHandler.dispose();
 
 ### render & DOM events
 
-0. `slotHandler` must be passed as `ownerSlot` to child blocks.
+First of all, ensure that children blocks can get `slotHandler` as `ownerSlot`
 
-1. Add `pointerup` event handler
+Then you can make a `<div>` to wrap children blocks. On the `<div>`:
 
-2. In the HTML template, `tabIndex` must be set to `-1`
+- add `tabIndex="-1"`
+- add event listeners from `slotHandler.getDOMEvents()`
 
-```js
-function handlePointerUp(ev) {
-  slotHandler.handlePointerUp();
-
-  // make copy / cut / paste keyboard shortcuts work
-  // a hidden input will be focused
-  if (document.activeElement === ev.currentTarget) blockContext.focus();
-}
-```
-
-```xml
-<div onPointerUp={handlePointerUp} tabIndex="-1">
-  TODO: render children here.
-
-  render your own Block components here.
-</div>
-```
-
-The `tabIndex` makes your div focusable. Once user clicks it, the focus point can be detected and transfer to our keyboard event handler (hiddenInput).
+The `tabIndex` must be set to `-1` so that we can correctly handle users' clicks and keyboard events.
 
 If you need to render child blocks, `slotHandler` must be passed as `ownerSlot` to them!
 
+#### getDOMEvents() and frameworks
+
+React
+
+```jsx
+const domEvents = slotHandler.getDOMEvents("react"); // => { onPointerUp: ... }
+// .                                       ^^^^^^^
+
+<div tabIndex={-1} {...domEvents}>
+  {
+    /* render your own Block components here. example: */
+
+    items.map((item, index) => (
+      <MyBlock
+        key={index}
+        ownerSlot={slotHandler}
+        index={index}
+        data={item}
+        onChange={...}
+      />
+    ))
+  }
+</div>;
+```
+
+Vue 2
+
+```jsx
+// in created()
+this.domEvents = slotHandler.getDOMEvents(); // => { pointerup: ... }
+```
+
+```xml
+<div tabindex="-1" v-on="domEvents">
+  <!-- render your own Block components here. example: -->
+  <MyBlock
+    v-for="(item, index) in items"
+    :key="index"
+    :ownerSlot="slotHandler"
+    :index="index"
+    :data.sync="item"
+  />
+</div>
+```
+
 ### visual feedbacks
 
-Keyboard shortcuts (Ctrl + V) works on this slot only if `(blockContext.hasFocus && slotHandler.isActive)`
+You shall update style when `onStatusChange()` is called. For example, add `class="..."` to the `<div>`
 
-Hence, three status shall be considered:
+There are 3 status based on `isActive, hasFocus` of `slotHandler`
 
-1. Inactive _-- eg. gray_
-2. Active but not focused _-- eg. dim blue_
-3. Active and focused _-- eg. bright blue_
-
-To observe `blockContext.hasFocus`:
-
-- Add event listener with `blockContext.on("focus", ...)`
-- Add event listener with `blockContext.on("blur", ...)`
-
-To observe `slotHandler.isActive`:
-
-- See `onActiveStatusChange` when creating slotHandler
-- Add event listener with `blockContext.on("activeElementChanged", ...)`, not recommended here
-
-> **BEST PRACTICE**
->
-> In your slot component, **DO NOT** add listeners to `blockContext` -- let the **root component** do that.
->
-> When blockContext is focused, let the **root component** add a className to its DOM element.
->
-> Then, write the stylesheets like this:
->
-> ```css
-> .mySlot {
->   /* status 1 */
-> }
->
-> .mySlot.isActive {
->   /* status 2 */
->   outline: 1px solid #c33;
-> }
->
-> .myPage.hasFocus .mySlot.isActive {
->   /* status 3 */
->   outline: 2px solid #f00;
-> }
-> ```
+| Expression              | Status                 | Example Style |
+| ----------------------- | ---------------------- | ------------- |
+| `!isActive`             | not active             | gray          |
+| `isActive && !hasFocus` | active but not focused | dim blue      |
+| `isActive && hasFocus`  | active                 | bright blue   |
 
 <br/>
 
@@ -375,7 +382,7 @@ const parent = ownerSlot || blockContext;  // use `blockContext` if no ownerSlot
 const blockHandler = parent.createBlock({
   data: () => ...,  // data getter, must return an object
   index: () => ..., // index getter, must return a number
-  onActiveStatusChange: () => { /* change the style if needed */ },
+  onStatusChange: () => { /* change the style if needed */ },
 })
 ```
 
@@ -383,15 +390,15 @@ const blockHandler = parent.createBlock({
 
 You shall provide two **getter functions**: `data` and `index`. They will be called when:
 
-- You access `blockHandler.data` or `blockHandler.index` (they are computed property)
-- Users select
+- Users make a selection
 - Users copy and paste -- `data` affects the clipboard!
+- You read `blockHandler.data` or `blockHandler.index` values (they are computed property)
 
-Additionally, the return value of `data` getter, may have a `toJSON()` method. Beware it affects `paste` events of slots too.
+If the returned value of `data()` have a `toJSON()` method, it will affect the data in `paste` events of slots.
 
 #### Attach a Ref
 
-Additionally, you can attach `this` of your component, to `blockHandler.ref`,
+Optionally, you can attach `this` of your component, to `blockHandler.ref`,
 so you will be able to access the component instance somewhere else later.
 
 ```js
@@ -411,78 +418,59 @@ blockHandler.dispose();
 
 ### render & DOM events
 
-0. `blockHandler` must be passed as `ownerBlock` to child slots
+First of all, ensure that children slots can get `blockHandler` as `ownerBlock`.
 
-1. Add `pointerup` event handler
+Then you can make a `<div>` to wrap block content (including possible sub-slots). On the `<div>`:
 
-2. In the HTML template, `tabIndex` must be set to `-1`
+- add `tabIndex="-1"`
+- add event listeners from `blockHandler.getDOMEvents()`
 
-```js
-function handlePointerUp(ev) {
-  blockHandler.handlePointerUp();
+The `tabIndex` must be set to `-1` so that we can correctly handle users' clicks and keyboard events.
 
-  // make copy / cut / paste keyboard shortcuts work
-  // a hidden input will be focused
-  if (document.activeElement === ev.currentTarget) blockContext.focus();
-}
+#### getDOMEvents() and frameworks
+
+React
+
+```jsx
+const domEvents = blockHandler.getDOMEvents("react"); // => { onPointerUp: ... }
+// .                                        ^^^^^^^
+
+<div tabIndex={-1} {...domEvents}>
+  {/* this is your card. render something here */}
+  <p>Block {data.xxxx}</p>
+
+  {/* you can also render sub-items with custom Slot component */}
+  <MySlot items={data.children} ownerBlock={blockHandler} onChange={...} />
+</div>;
+```
+
+Vue 2
+
+```jsx
+// in created()
+this.domEvents = blockHandler.getDOMEvents(); // => { pointerup: ... }
 ```
 
 ```xml
-<div onPointerUp={handlePointerUp} tabIndex="-1">
+<div tabindex="-1" v-on="domEvents">
+  <!-- this is your card. render something here -->
+  <p>Block {{data.xxxx}}</p>
 
-  This is your card. render something here.
-
-  You can also render your Slot components here.
-
+  <!-- you can also render sub-items with custom Slot component -->
+  <MySlot :items.sync="data.children" :ownerBlock="blockHandler" />
 </div>
 ```
 
-In the HTML template, `tabIndex` must be set to `-1` so that we can correctly handle users' clicks and transfer the focus point to our keyboard shortcut handler (a hidden input box).
-
-If you need to render child slots, `blockHandler` must be passed as `ownerBlock` to them!
-
 ### visual feedbacks
 
-Keyboard shortcuts (Ctrl + V) works on this block only if `(blockContext.hasFocus && blockHandler.isActive)`.
+You shall update style when `onStatusChange()` is called. For example, add `class="..."` to the `<div>`
 
-Additionally, `blockHandler.activeNumber` will be 0, 1, 2... if multiple blocks are active (selected)!
+There are 3 status based on `isActive, hasFocus` of `blockHandler`
 
-Hence, three status shall be considered:
+| Expression              | Status                 | Example Style |
+| ----------------------- | ---------------------- | ------------- |
+| `!isActive`             | not active             | gray          |
+| `isActive && !hasFocus` | active but not focused | dim blue      |
+| `isActive && hasFocus`  | active (aka. selected) | bright blue   |
 
-1. Inactive _-- eg. gray_
-2. Active but not focused _-- eg. dim blue_
-3. Active and focused _-- eg. bright blue_
-
-To observe `blockContext.hasFocus`:
-
-- Add event listener with `blockContext.on("focus", ...)`
-- Add event listener with `blockContext.on("blur", ...)`
-
-To observe `blockHandler.isActive` and `blockHandler.activeNumber`:
-
-- See `onActiveStatusChange` when creating blockHandler
-- Add event listener with `blockContext.on("activeElementChanged", ...)`, not recommended here
-
-> **BEST PRACTICE**
->
-> In your block component, **DO NOT** add listeners to `blockContext` -- let the **root component** do that.
->
-> When blockContext is focused, let the **root component** add a className to its DOM element.
->
-> Then, write the stylesheets like this:
->
-> ```css
-> .myBlock {
->   /* status 1 */
-> }
->
-> .myBlock.isActive {
->   /* status 2 */
->   outline: 1px solid #c33;
-> }
->
-> .myPage.hasFocus .myBlock.isActive {
->   /* status 3 */
->   outline: 2px solid #f00;
-> }
-> ```
+Additionally, to help user make multiple-selection, please display `blockHandler.activeNumber` in the block. The value will be 0, 1, 2... if multiple blocks are active (aka. selected)!

@@ -90,11 +90,7 @@ export const IBBlockMixin = Vue.extend<{
           throw new Error("You must override ibGetOptions()");
         },
         ibHandlePointerUp(ev: any) {
-          this.ibBlockHandler.handlePointerUp();
-
-          // make copy / cut / paste keyboard shortcuts work
-          // a hidden input will be focused
-          if (isTargetActiveElement(ev.currentTarget)) this.ibBlockContext.focus();
+          this.ibBlockHandler.handlePointerUp(ev);
         },
       },
       created() {
@@ -160,11 +156,7 @@ export const IBSlotMixin = Vue.extend<{
           return {};
         },
         ibHandlePointerUp(ev: any) {
-          this.ibSlotHandler.handlePointerUp();
-
-          // make copy / cut / paste keyboard shortcuts work
-          // a hidden input will be focused
-          if (isTargetActiveElement(ev.currentTarget)) this.ibBlockContext.focus();
+          this.ibSlotHandler.handlePointerUp(ev);
         },
       },
       created() {
@@ -196,15 +188,3 @@ export const IBSlotMixin = Vue.extend<{
         },
       },
     });
-
-
-// ----------------------------------------------------------------
-
-function isTargetActiveElement(target: any) {
-  if (!target || typeof target.getRootNode !== "function") return false;
-
-  const root = target.getRootNode();  // do not directly use "document"
-  if (!root) return false;
-
-  return root.activeElement === target;
-}

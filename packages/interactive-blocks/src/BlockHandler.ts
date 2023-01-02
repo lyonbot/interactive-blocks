@@ -22,7 +22,7 @@ export interface BlockInfo {
 }
 
 export interface BlockDOMEventHandlers {
-  pointerUp(ev: Pick<PointerEvent, "eventPhase">): void;
+  pointerUp(ev: Pick<PointerEvent, "eventPhase" | "currentTarget">): void;
   dragStart?(ev: Pick<DragEvent, "stopPropagation" | "dataTransfer" | "clientX" | "clientY">): void;
   dragLeave?(ev: Pick<DragEvent, never>): void;
   dragOver?(ev: Pick<DragEvent, never>): void;
@@ -72,7 +72,9 @@ export class BlockHandler {
     return true;
   }
 
-  handlePointerUp = (ev?: FirstParameter<BlockDOMEventHandlers["pointerUp"]>) => this.ctx.handleBlockPointerUp(this, ev);
+  handlePointerUp = (ev?: FirstParameter<BlockDOMEventHandlers["pointerUp"]>) => {
+    this.ctx.handleBlockPointerUp(this, ev);
+  };
 
   /**
    * select / active this block, without focusing
@@ -127,14 +129,14 @@ export class BlockHandler {
   }
 
   getDOMEvents<S extends EventKeyStyle>(
-    eventKeyStyle: S,
+    eventKeyStyle?: S,
     opt: { draggable?: boolean } = {}
   ) {
     const ans: BlockDOMEventHandlers = {
       pointerUp: this.handlePointerUp,
     };
 
-    if (opt.draggable) Object.assign(this.ctx.dragging.getBlockDOMEventHandlers(this));
+    if (opt.draggable) Object.assign(ans, this.ctx.dragging.getBlockDOMEventHandlers(this));
 
     return getStyledEventHandlersLUT(ans, eventKeyStyle);
   }

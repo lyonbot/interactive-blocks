@@ -30,6 +30,24 @@ export function throttle<T extends (...args: any) => void>(fn: T, wait: number) 
 }
 
 /**
+ * wrap a function. in the following calls, if `input` didn't change, `fn` will not execute
+ */
+export function wrapAsTrigger<T>(
+  fn: (input: T, lastInput?: T) => void,
+  isEqual: (a: T, b: T) => boolean = (a, b) => a == b
+): (input: T) => void {
+  let initialized = false;
+  let lastValue: T | undefined;
+
+  return (input: T) => {
+    if (initialized && isEqual(lastValue!, input)) return;
+    initialized = true;
+    lastValue = input;
+    fn(input, lastValue);
+  };
+}
+
+/**
  * extract and remove items from the array safely.
  *
  * this will mutate `arr` the input array.
@@ -76,11 +94,11 @@ export type StyledEventLUT<T, S extends EventKeyStyle> = {
   [K in keyof T as ToStyledEventKey<S, K>]: T[K]
 };
 
-export type EventKeyStyle = "react" | "vue" | "lowercase" | "camelCase";
+export type EventKeyStyle = "react" | "vue" | "lowercase" | "camelCase" | undefined | null;
 
 type ToStyledEventKey<S extends EventKeyStyle, KEY> = KEY extends string ? (
   S extends "react" ? `on${Capitalize<KEY>}` :
-    S extends "vue" | "lowercase" ? Lowercase<KEY> :
+    S extends "vue" | "lowercase" | "" | undefined | null ? Lowercase<KEY> :
       KEY
 ) : KEY;
 
@@ -92,7 +110,7 @@ export function getStyledEventHandlersLUT(o: FunctionLUT, style: EventKeyStyle) 
   Object.keys(o).forEach(ok => {
     let key = ok;
     if (style === "react") key = `on${key[0]?.toUpperCase()}${key.slice(1)}`;
-    if (style === "lowercase" || style === "vue") key = key.toLowerCase();
+    else if (style === "lowercase" || style === "vue" || !style) key = key.toLowerCase();
 
     answer[key] = o[ok]!;
   });

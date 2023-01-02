@@ -2,7 +2,7 @@ import type { IBCutAction, IBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
 import { head } from "./itertools";
-import { EventKeyStyle, getStyledEventHandlersLUT } from "./utils";
+import { EventKeyStyle, FirstParameter, getStyledEventHandlersLUT } from "./utils";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SlotInfo {
@@ -23,7 +23,7 @@ export interface SlotInfo {
 }
 
 export interface SlotDOMEventHandlers {
-  pointerUp: (ev: Pick<PointerEvent, "eventPhase">) => void;
+  pointerUp: (ev: Pick<PointerEvent, "eventPhase" | "currentTarget">) => void;
   dragOver?: (ev: Pick<DragEvent, "preventDefault" | "stopPropagation" | "dataTransfer">) => void;
   dragLeave?: (ev: Pick<DragEvent, "preventDefault" | "stopPropagation">) => void;
   drop?: (ev: Pick<DragEvent, "preventDefault" | "stopPropagation" | "dataTransfer">) => void;
@@ -37,7 +37,7 @@ export class SlotHandler {
   readonly items = new Set<BlockHandler>();
   info: SlotInfo;
 
-  handlePointerUp = (ev?: Pick<PointerEvent, "eventPhase">) => {
+  handlePointerUp = (ev?: FirstParameter<SlotDOMEventHandlers["pointerUp"]>) => {
     this.ctx.handleSlotPointerUp(this, ev);
   };
 
@@ -136,14 +136,14 @@ export class SlotHandler {
   }
 
   getDOMEvents<S extends EventKeyStyle>(
-    eventKeyStyle: S,
+    eventKeyStyle?: S,
     opt: { draggable?: boolean } = {}
   ) {
     const ans: SlotDOMEventHandlers = {
       pointerUp: this.handlePointerUp,
     };
 
-    if (opt.draggable) Object.assign(this.ctx.dragging.getSlotDOMEventHandlers(this));
+    if (opt.draggable) Object.assign(ans, this.ctx.dragging.getSlotDOMEventHandlers(this));
 
     return getStyledEventHandlersLUT(ans, eventKeyStyle);
   }

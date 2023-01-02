@@ -311,7 +311,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     if (!slot) return false;
 
     const block0index = blocks[0]!.index;
-    const indexes=Array.from(blocks, x => x.index);
+    const indexes = Array.from(blocks, x => x.index);
 
     const action = new IBCutAction({
       type: "cut",
@@ -497,6 +497,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
   isFocusingBlock?: BlockHandler;
   isFocusingSlot?: SlotHandler;
+  focusingElement?: HTMLElement;
 
   /**
    * clear selection
@@ -606,23 +607,28 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     this.syncActiveElementStatus();
   }
 
-  handleSlotPointerUp = (slot: SlotHandler, ev?: Pick<PointerEvent, "eventPhase">) => {
+  handleSlotPointerUp = (slot: SlotHandler, ev?: Pick<PointerEvent, "eventPhase" | "currentTarget">) => {
     const isCapture = ev && ev.eventPhase === Event.CAPTURING_PHASE;
     if (!isCapture && this.isFocusingSlot) return;  // in bubble phase: only update isFocusingSlot once
     this.isFocusingSlot = slot;
+    if (!this.focusingElement) this.focusingElement = ev?.currentTarget as HTMLElement;
   };
 
-  handleBlockPointerUp = (block: BlockHandler, ev?: Pick<PointerEvent, "eventPhase">) => {
+  handleBlockPointerUp = (block: BlockHandler, ev?: Pick<PointerEvent, "eventPhase" | "currentTarget">) => {
     const isCapture = ev && ev.eventPhase === Event.CAPTURING_PHASE;
     if (!isCapture && this.isFocusingBlock) return;  // in bubble phase: only update isFocusingBlock once
     this.isFocusingBlock = block;
+    if (!this.focusingElement) this.focusingElement = ev?.currentTarget as HTMLElement;
   };
 
   handleGlobalPointerUp = (ev: PointerEvent) => {
     const currBlock = this.isFocusingBlock;
     const currSlot = this.isFocusingSlot;
+    const currDOMElement = this.focusingElement;
+
     this.isFocusingBlock = void 0;
     this.isFocusingSlot = void 0;
+    this.focusingElement = void 0;
 
     if (!currBlock) {
       // nothing was clicked
@@ -636,6 +642,13 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     }
 
     this.syncActiveElementStatus();
+
+    // move focus to the hidden element, if needed
+
+    if (currDOMElement) {
+      const root = currDOMElement.getRootNode?.();  // do not directly use "document"
+      if ((root as Document)?.activeElement === currDOMElement) this.focus();
+    }
   };
 
   dispose() {
