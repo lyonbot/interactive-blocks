@@ -7,19 +7,22 @@ To support drag and drop, modify your Block Component and Slot Component.
 ## 🎯 To-do List
 
 - **Root Component**
-  
+
   - basically nothing to do
   - (optional) add event listeners to DraggingContext
 
 - **Block Component**
 
-  - add event listeners to DOM element
+  - On the `<div>`
+    - add `draggable` attribute
+    - use `blockHandler.getDOMEvents(null, { draggable: true })` to get event handlers
   - (optional) implement `onDragStart` while creating
 
 - **Slot Component**
 
-  - implement `onMoveInSlot` and `onMoveToThisSlot` while creating (examples provided below)
-  - add event listeners to DOM element
+  - provide customized `onMoveInSlot` and `onMoveToThisSlot` while creating (examples provided below)
+  - On the `<div>`
+    - use `slotHandler.getDOMEvents(null, { draggable: true })` to get event handlers
   - update visual feedbacks when `onDragHoverStatusChange` called
   - (optional) provide your own `computeIndexToDrop` implementation while creating
 
@@ -85,54 +88,11 @@ If you want, add some of these optional callbacks, while creating BlockHandler:
 
 First of all, add `draggable` to the DOM element!
 
-Then, while creating, generate the default event listeners:
+Then as described in [Basic Setup](./basic-setup.md), we bind event listeners to it.
 
-```js
-const theGeneratedListeners =
-  blockContext.dragging.getDefaultBlockEventHandlers(blockHandler, "react");
-```
+The only difference is that we use `blockHandler.getDOMEvents(null, { draggable: true })` to get event handlers
 
-The last parameter is the style of event names. It can be:
-
-- `"react"` --> onDragStart
-- `"lowercase"` --> dragstart
-- `"camelCase"` --> dragStart
-
-For example, in `"react"` style, it returns a object like this:
-
-```js
-// dragCtx = blockContext.dragging
-// block = blockHandler
-
-{
-  onDragStart: (event) => dragCtx.handleBlockDragStart(block, event),
-  onDragEnd: (event) => dragCtx.handleBlockDragEnd(block, event),
-  onDragOver: (event) => dragCtx.handleBlockDragOver(block, event),
-  onDragLeave: (event) => dragCtx.handleBlockDragLeave(block, event),
-}
-```
-
-For React, you can simply add them like this:
-
-```jsx {2-3}
-<div
-  className="myBlock"
-  draggable
-  {...theGeneratedListeners}
->
-  ...
-```
-
-For Vue, you can also generate listeners with `"lowercase"` style (important!), and use them like this:
-
-```xml {2}
-<div
-  class="myBlock"
-  draggable
-  v-on="theGeneratedListeners"
->
-  ...
-```
+- the first parameter could be `"react"` if using React
 
 <br/>
 
@@ -157,7 +117,7 @@ import { moveItemsInArray, moveItemsBetweenArrays } from "@lyonbot/interactive-b
 const slotHandler = parent.createSlot({
   onCut: ...,
   onPaste: ...,
-  onActiveStatusChange: ...,
+  onStatusChange: ...,
 
   // you can attach `this` of your component, to `slotHandler.ref`
   // so you will be able to access the component instance somewhere else later.
@@ -204,70 +164,11 @@ const slotHandler = parent.createSlot({
 
 ### handle DOM events
 
-While creating, generate the default event listeners:
+Then as described in [Basic Setup](./basic-setup.md), we bind event listeners to it.
 
-```js
-const theGeneratedListeners = blockContext.dragging.getDefaultSlotEventHandlers(
-  slotHandler,
-  "react"
-);
-```
+The only difference is that we use `slotHandler.getDOMEvents(null, { draggable: true })` to get event handlers
 
-The last parameter is the style of event names. It can be:
-
-- `"react"` --> onDragStart
-- `"lowercase"` --> dragstart
-- `"camelCase"` --> dragStart
-
-For example, in `"react"` style, it returns a object like this:
-
-```js
-// dragCtx = blockContext.dragging
-// slot = slotHandler
-
-{
-  onDragOver(ev) {
-    if (!dragCtx.handleSlotDragOver(slot, ev)) return;
-
-    ev.preventDefault();
-    ev.stopPropagation();
-  },
-
-  onDragLeave(ev) {
-    dragCtx.handleSlotDragLeave(slot);
-
-    ev.preventDefault();
-    ev.stopPropagation();
-  },
-
-  onDrop(ev) {
-    dragCtx.handleSlotDrop(slot, ev);
-
-    ev.preventDefault();
-    ev.stopPropagation();
-  },
-}
-```
-
-For React, you can simply add them like this:
-
-```jsx {2}
-<div
-  className="mySlot"
-  {...theGeneratedListeners}
->
-  ...
-```
-
-For Vue, you can also generate listeners with `"lowercase"` style (important!), and use them like this:
-
-```xml {2}
-<div
-  class="mySlot"
-  v-on="theGeneratedListeners"
->
-  ...
-```
+- the first parameter could be `"react"` if using React
 
 ### visual feedbacks
 
