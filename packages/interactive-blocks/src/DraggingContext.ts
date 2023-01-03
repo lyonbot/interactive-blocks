@@ -1,11 +1,12 @@
 import { BlockDOMEventHandlers, BlockHandler } from "./BlockHandler";
 import { SlotDOMEventHandlers, SlotHandler } from "./SlotHandler";
 import { BlockContext } from "./BlockContext";
-import { FirstParameter, throttle } from "./utils";
+import { throttle } from "./utils";
 import { EventEmitter } from "./EventEmitter";
 import { IBMoveBetweenSlotsAction, IBMoveInSlotAction, IBSlotBeforeDropAction } from "./action";
 import { reduce } from "./itertools";
 import { IBBlockDragStartAction } from "./action";
+import { FirstParameter } from "./domEvents";
 
 const isWebKit = "webkitRequestAnimationFrame" in window;
 const MIME_CTX_UUID = "x-block-context/uuid";

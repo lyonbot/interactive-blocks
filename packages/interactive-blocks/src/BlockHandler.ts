@@ -2,7 +2,9 @@ import type { BlockContext } from "./BlockContext";
 import type { SlotHandler, SlotInfo } from "./SlotHandler";
 import { getValueOf, ValueOrGetter } from "./ValueOrGetter";
 import { MultipleSelectType } from "./MultipleSelectType";
-import { EventKeyStyle, FirstParameter, getStyledEventHandlersLUT } from "./utils";
+import { BlockDOMEventHandlers, StyledEventLUT, GetDOMEventsOptions, EventKeyStyle, FirstParameter, getStyledEventHandlersLUT } from "./domEvents";
+
+export { BlockDOMEventHandlers };
 
 export interface BlockInfo {
   index: ValueOrGetter<number>;
@@ -21,13 +23,7 @@ export interface BlockInfo {
   onStatusChange?(element: BlockHandler): void;
 }
 
-export interface BlockDOMEventHandlers {
-  pointerUp(ev: Pick<PointerEvent, "eventPhase" | "currentTarget">): void;
-  dragStart?(ev: Pick<DragEvent, "stopPropagation" | "dataTransfer" | "clientX" | "clientY">): void;
-  dragLeave?(ev: Pick<DragEvent, never>): void;
-  dragOver?(ev: Pick<DragEvent, never>): void;
-  dragEnd?(ev: Pick<DragEvent, never>): void;
-}
+
 
 export class BlockHandler {
   readonly type = "block";
@@ -128,10 +124,8 @@ export class BlockHandler {
     return this.ctx.createSlot(info, this);
   }
 
-  getDOMEvents<S extends EventKeyStyle>(
-    eventKeyStyle?: S,
-    opt: { draggable?: boolean } = {}
-  ) {
+  getDOMEvents(): StyledEventLUT<BlockDOMEventHandlers, null>
+  getDOMEvents<S extends EventKeyStyle>(eventKeyStyle?: S, opt: GetDOMEventsOptions = {}) {
     const ans: BlockDOMEventHandlers = {
       pointerUp: this.handlePointerUp,
     };
