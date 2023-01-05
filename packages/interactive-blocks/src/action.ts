@@ -54,21 +54,22 @@ export const IBCutAction = actionClass<{
   readonly blocks: BlockHandler[];
 
   /**
-   * the indexes of blocks to be cut, in selector order
+   * the indexes of blocks to be cut, in selection order
    *
-   * @see indexesDescending
+   * @see indexesDescending - to safely delete items, use this
+   *
+   * ```js
+   * action.indexesDescending.forEach(index => array.splice(index, 1))
+   * ```
    */
   readonly indexes: number[];
 
   /**
    * the indexes of blocks to be cut, in descending order
    *
-   * the descending order may help you wipe out the items one-by-one safely:
-   *
    * ```js
-   * action.indexesDescending.forEach(index => {
-   *   array.splice(index, 1);
-   * })
+   * // safely delete items one-by-one
+   * action.indexesDescending.forEach(index => array.splice(index, 1))
    * ```
    */
   readonly indexesDescending: number[];

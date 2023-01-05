@@ -1,41 +1,59 @@
 import type { IBCutAction, IBPasteAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
-import { EventKeyStyle, FirstParameter, GetDOMEventsOptions, getStyledEventHandlersLUT, SlotDOMEventHandlers, StyledEventLUT } from "./domEvents";
+import { EventKeyStyle, GetDOMEventsOptions, getStyledEventHandlersLUT, revokableFn, SlotDOMEventHandlers, StyledEventLUT } from "./domEvents";
 import { head } from "./itertools";
+import { assign } from "./utils";
 
 export { SlotDOMEventHandlers };
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface SlotInfo {
   /**
-   * you can attach something (eg. `this` of component) as `slotHandler.ref`
+   * called when some blocks are about to be removed from this slot.
+   *
+   * ❗ you shall implement the "delete" logic here
    */
-  ref?: any;
-
   onCut?(action: IBCutAction): void;
+
+  /**
+   * called when we want to insert some blocks into this slot.
+   *
+   * ❗ you shall implement the "insert" logic here
+   */
   onPaste?(action: IBPasteAction): void;
 
   /**
    * called when `isActive` or `hasFocus` is changed.
    *
-   * when triggered, you shall update the appearance.
+   * ❗ you shall update the slot's style here
    */
   onStatusChange?(slot: SlotHandler): void;
+
+  /**
+   * (optional) attach something to `slotHandler.ref` (eg. Component Instance)
+   */
+  ref?: any;
 }
 
 
 export class SlotHandler {
-  readonly type = "slot";
+  readonly is = "SlotHandler";
 
   readonly ctx: BlockContext;
   readonly ownerBlock: BlockHandler | null;
   readonly items = new Set<BlockHandler>();
   info: SlotInfo;
 
-  handlePointerUp = (ev?: FirstParameter<SlotDOMEventHandlers["pointerUp"]>) => {
+  /**
+   * last element that emits "pointerup"
+   * @internal - use
+   */
+  _lastElement: HTMLElement | undefined;
+
+  handlePointerUp = revokableFn<SlotDOMEventHandlers["pointerUp"]>((ev) => {
     this.ctx.handleSlotPointerUp(this, ev);
-  };
+  });
 
   constructor(ctx: BlockContext, ownerBlock: BlockHandler | null, info: SlotInfo) {
     this.ctx = ctx;
@@ -85,10 +103,11 @@ export class SlotHandler {
    */
   select() {
     this.ctx.activeSlot = this;
-    this.ctx.activeBlocks =
-      this.ctx.options.multipleSelect ? new Set(this.items)
-        : this.items.size ? new Set([head(this.items)!])
-          : new Set();
+    this.ctx.activeBlocks = new Set(
+      this.ctx.options.multipleSelect ? this.items
+        : this.items.size ? [head(this.items)!]
+          : []
+    );
 
     this.ctx.syncActiveElementStatus();
   }
@@ -132,12 +151,12 @@ export class SlotHandler {
   }
 
   getDOMEvents(): StyledEventLUT<SlotDOMEventHandlers, null>
+  getDOMEvents<S extends EventKeyStyle>(eventKeyStyle: S, opt?: GetDOMEventsOptions): StyledEventLUT<SlotDOMEventHandlers, S>
   getDOMEvents<S extends EventKeyStyle>(eventKeyStyle?: S, opt: GetDOMEventsOptions = {}) {
-    const ans: SlotDOMEventHandlers = {
-      pointerUp: this.handlePointerUp,
-    };
+    const ans: SlotDOMEventHandlers = {};
 
-    if (opt.draggable) Object.assign(ans, this.ctx.dragging.getSlotDOMEventHandlers(this));
+    if (opt.isWrapper ?? true) assign(ans, { pointerUp: this.handlePointerUp });
+    if (opt.isDraggable) assign(ans, this.ctx.dragging.getSlotDOMEventHandlers(this));
 
     return getStyledEventHandlersLUT(ans, eventKeyStyle);
   }
@@ -158,5 +177,8 @@ export class SlotHandler {
     this.items.forEach(child => child.dispose());
     this.items.clear();
     this.info = {};
+
+    this._lastElement = void 0;
+    this.handlePointerUp.revoke();
   }
 }

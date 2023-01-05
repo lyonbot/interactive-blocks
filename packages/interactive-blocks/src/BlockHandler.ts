@@ -2,31 +2,43 @@ import type { BlockContext } from "./BlockContext";
 import type { SlotHandler, SlotInfo } from "./SlotHandler";
 import { getValueOf, ValueOrGetter } from "./ValueOrGetter";
 import { MultipleSelectType } from "./MultipleSelectType";
-import { BlockDOMEventHandlers, StyledEventLUT, GetDOMEventsOptions, EventKeyStyle, FirstParameter, getStyledEventHandlersLUT } from "./domEvents";
+import { BlockDOMEventHandlers, StyledEventLUT, GetDOMEventsOptions, EventKeyStyle, getStyledEventHandlersLUT, revokableFn } from "./domEvents";
+import { assign } from "./utils";
 
 export { BlockDOMEventHandlers };
 
 export interface BlockInfo {
+  /**
+   * define how to get the index of this block
+   *
+   * ❗ you shall provide a function that returns an integer (starts from 0)
+   */
   index: ValueOrGetter<number>;
-  data: ValueOrGetter<Record<string, any>>;
 
   /**
-   * you can attach something (eg. `this` of component) as `blockHandler.ref`
+   * define how to get the data of this block
+   *
+   * ❗ you shall provide a function that returns the value (can be anything, eg. object)
    */
-  ref?: any;
+  data: ValueOrGetter<Record<string, any>>;
 
   /**
    * called when `isActive` or `hasFocus` is changed.
    *
-   * when triggered, you shall update the appearance.
+   * ❗ you shall update the block's style here
    */
   onStatusChange?(element: BlockHandler): void;
+
+  /**
+   * (optional) attach something to `blockHandler.ref` (eg. Component Instance)
+   */
+  ref?: any;
 }
 
 
 
 export class BlockHandler {
-  readonly type = "block";
+  readonly is = "BlockHandler";
 
   readonly ctx: BlockContext;
   readonly ownerSlot: SlotHandler | null;
@@ -36,7 +48,7 @@ export class BlockHandler {
   private _activeNumber: false | number = false;
 
   /**
-   * `false` if not selected. otherwise, the index in current selection (starts from 1)
+   * `false` if not selected. otherwise, the order number in current selection (starts from 1)
    */
   get activeNumber() {
     return this._activeNumber;
@@ -68,9 +80,12 @@ export class BlockHandler {
     return true;
   }
 
-  handlePointerUp = (ev?: FirstParameter<BlockDOMEventHandlers["pointerUp"]>) => {
+  /** last element that emits "pointerup" @internal */
+  _lastElement: HTMLElement | undefined;
+
+  handlePointerUp = revokableFn<BlockDOMEventHandlers["pointerUp"]>((ev) => {
     this.ctx.handleBlockPointerUp(this, ev);
-  };
+  });
 
   /**
    * select / active this block, without focusing
@@ -125,12 +140,12 @@ export class BlockHandler {
   }
 
   getDOMEvents(): StyledEventLUT<BlockDOMEventHandlers, null>
+  getDOMEvents<S extends EventKeyStyle>(eventKeyStyle: S, opt?: GetDOMEventsOptions): StyledEventLUT<BlockDOMEventHandlers, S>
   getDOMEvents<S extends EventKeyStyle>(eventKeyStyle?: S, opt: GetDOMEventsOptions = {}) {
-    const ans: BlockDOMEventHandlers = {
-      pointerUp: this.handlePointerUp,
-    };
+    const ans: BlockDOMEventHandlers = {};
 
-    if (opt.draggable) Object.assign(ans, this.ctx.dragging.getBlockDOMEventHandlers(this));
+    if (opt.isWrapper ?? true) assign(ans, { pointerUp: this.handlePointerUp });
+    if (opt.isDraggable) assign(ans, this.ctx.dragging.getBlockDOMEventHandlers(this));
 
     return getStyledEventHandlersLUT(ans, eventKeyStyle);
   }
@@ -145,6 +160,9 @@ export class BlockHandler {
     this.slots.forEach((slot) => slot.dispose());
     this.slots.clear();
     this.info = emptyBlockInfo;
+
+    this._lastElement = void 0;
+    this.handlePointerUp.revoke();
   }
 }
 

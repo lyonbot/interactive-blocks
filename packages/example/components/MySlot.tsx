@@ -42,7 +42,7 @@ export const MySlot = memo(function MySlot(props: { children: React.ReactNode })
   }));
 
   const domEventHandlers = useMemo(
-    () => slotHandler.getDOMEvents("react", { draggable: true }),
+    () => slotHandler.getDOMEvents("react", { isDraggable: true }),
     []
   );
 

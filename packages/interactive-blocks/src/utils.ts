@@ -31,11 +31,13 @@ export function throttle<T extends (...args: any) => void>(fn: T, wait: number) 
 
 /**
  * wrap a function. in the following calls, if `input` didn't change, `fn` will not execute
+ *
+ * the wrapped function returns `undefined` if `fn` is not called, or the actual call's return value
  */
-export function wrapAsTrigger<T>(
-  fn: (input: T, lastInput?: T) => void,
+export function wrapAsTrigger<T, U>(
+  fn: (input: T, lastInput?: T) => U,
   isEqual: (a: T, b: T) => boolean = (a, b) => a == b
-): (input: T) => void {
+): (input: T) => U | void {
   let initialized = false;
   let lastValue: T | undefined;
 
@@ -84,3 +86,8 @@ export function moveItemsBetweenArrays(fromArr: any[], fromIndexes: number[], to
   const items = removeItems(fromArr, fromIndexes);
   toArr.splice(toIndex, 0, ...items);
 }
+
+/**
+ * equals to `Object.assign` but with TypeScript restrictions
+ */
+export const assign = Object.assign as <T>(obj: T, another: Partial<T>) => T;

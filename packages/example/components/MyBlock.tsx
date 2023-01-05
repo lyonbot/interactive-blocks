@@ -25,7 +25,7 @@ export const MyBlock = memo(function MyBlock(props: { index: number; item: MyDat
   );
 
   const domEventHandlers = useMemo(
-    () => blockHandler.getDOMEvents("react", { draggable: true }),
+    () => blockHandler.getDOMEvents("react", { isDraggable: true }),
     []
   );
 

@@ -15,14 +15,14 @@ To support drag and drop, modify your Block Component and Slot Component.
 
   - On the `<div>`
     - add `draggable` attribute
-    - use `blockHandler.getDOMEvents(null, { draggable: true })` to get event handlers
+    - use `blockHandler.getDOMEvents(null, { isDraggable: true })` to get event handlers
   - (optional) implement `onDragStart` while creating
 
 - **Slot Component**
 
   - provide customized `onMoveInSlot` and `onMoveToThisSlot` while creating (examples provided below)
   - On the `<div>`
-    - use `slotHandler.getDOMEvents(null, { draggable: true })` to get event handlers
+    - use `slotHandler.getDOMEvents(null, { isDraggable: true })` to get event handlers
   - update visual feedbacks when `onDragHoverStatusChange` called
   - (optional) provide your own `computeIndexToDrop` implementation while creating
 
@@ -90,7 +90,7 @@ First of all, add `draggable` to the DOM element!
 
 Then as described in [Basic Setup](./basic-setup.md), we bind event listeners to it.
 
-The only difference is that we use `blockHandler.getDOMEvents(null, { draggable: true })` to get event handlers
+The only difference is that we use `blockHandler.getDOMEvents(null, { isDraggable: true })` to get event handlers
 
 - the first parameter could be `"react"` if using React
 
@@ -166,7 +166,7 @@ const slotHandler = parent.createSlot({
 
 Then as described in [Basic Setup](./basic-setup.md), we bind event listeners to it.
 
-The only difference is that we use `slotHandler.getDOMEvents(null, { draggable: true })` to get event handlers
+The only difference is that we use `slotHandler.getDOMEvents(null, { isDraggable: true })` to get event handlers
 
 - the first parameter could be `"react"` if using React
 

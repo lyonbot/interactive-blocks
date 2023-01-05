@@ -5,6 +5,7 @@ import { DraggingContext } from "./DraggingContext";
 import { find, head } from "./itertools";
 import { SlotHandler, SlotInfo } from "./SlotHandler";
 import { MultipleSelectType, normalizeMultipleSelectType } from "./MultipleSelectType";
+import { enableFocusAnchorStyle, focusAnchorDataMark, isFocusable } from "./dom";
 
 export interface BlockContextEvents {
   activeElementChanged(ctx: BlockContext): void;
@@ -14,6 +15,7 @@ export interface BlockContextEvents {
   cut(action: IBCutAction): void;
   moveInSlot(action: IBMoveInSlotAction): void;
   moveBetweenSlots(action: IBMoveBetweenSlotsAction): void;
+  keydown(event: KeyboardEvent, ctx: BlockContext): void;
 }
 
 export interface BlockContextOptions {
@@ -38,7 +40,7 @@ export interface BlockContextOptions {
    *
    * default is true.
    *
-   * Note: to add your own keyboard logic, `blockContext.hiddenInput.addEventListener("keydown", ...)`
+   * Note: to add your own keyboard logic, `blockContext.on("keydown", ...)`
    */
   navigateWithArrowKeys?: boolean;
 
@@ -47,7 +49,7 @@ export interface BlockContextOptions {
    *
    * default is true.
    *
-   * Note: to add your own keyboard logic, `blockContext.hiddenInput.addEventListener("keydown", ...)`
+   * Note: to add your own keyboard logic, `blockContext.on("keydown", ...)`
    */
   handleDeleteKey?: boolean;
 
@@ -82,10 +84,6 @@ const defaultOptions: Required<BlockContextOptions> = {
 };
 
 export class BlockContext extends EventEmitter<BlockContextEvents> {
-  hiddenInput: HTMLTextAreaElement;
-  private _lastActiveElement: HTMLElement | Element | null = null;
-
-  hasFocus = false;
   options: Required<BlockContextOptions>;
 
   brand = "";
@@ -99,112 +97,147 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
     document.addEventListener("pointerup", this.handleGlobalPointerUp, false);
 
-    const hiddenInput = this.hiddenInput = document.createElement("textarea");
-    hiddenInput.style.cssText = "opacity:0;left:0;top:0;position:fixed;width:2px;height:2px";
-    hiddenInput.tabIndex = -1;
-    hiddenInput.inputMode = "none";
-    hiddenInput.ownerDocument.body.appendChild(hiddenInput);
+    /** these event listeners will be mounted / unmounted when `_setActiveElement` is called */
+    const eventListeners = {
+      cut: (ev: ClipboardEvent) => {
+        populateClipboard(ev);
+        this.deleteActiveBlocks();
+      },
+      copy: (ev: ClipboardEvent) => {
+        populateClipboard(ev);
+      },
+      paste: (ev: ClipboardEvent) => {
+        ev.preventDefault();
+
+        // const info = this.activeElementInfo;
+        // if (info?.type !== "block") return;
+
+        try {
+          const text = ev.clipboardData?.getData("text/plain");
+          if (!text) return;
+
+          const data = this.options.unserializeForClipboard(text);
+          this.pasteWithData(data);
+        } catch (err) {
+          console.error("Failed to paste!", err);
+        }
+      },
+      blur: (ev: FocusEvent) => {
+        if (ev.relatedTarget === this._activeElement) return;  // already _setActiveElement with new focus anchor
+        this._setActiveElement(null);
+      },
+      keydown: (ev: KeyboardEvent) => {
+        const opts = this.options;
+        const code = ev.code;
+        let handled = false;
+
+        if (code === "KeyA" && (opts.multipleSelect && (ev.ctrlKey || ev.metaKey))) {
+          handled = true;
+          this.activeBlocks = new Set(
+            Array
+              .from(this.slotOfActiveBlocks?.items || this.activeSlot?.items || [])
+              .sort((a, b) => a.index - b.index)
+          );
+          this.syncActiveElementStatus();
+        }
+
+        if (
+          opts.navigateWithArrowKeys
+          && (code === "ArrowUp" || code === "ArrowDown")
+          && (opts.multipleSelect || !(ev.shiftKey || ev.ctrlKey || ev.metaKey))   // only in multipleSelect mode, handle modifier keys
+        ) {
+          handled = true;
+          this.activeNextBlock(code === "ArrowDown" ? +1 : -1, ev.shiftKey || ev.ctrlKey || ev.metaKey);
+          this.focus();
+        }
+
+        if (opts.navigateWithArrowKeys && code === "ArrowLeft") {
+          handled = true;
+          this.activeParentBlock();
+          this.focus();
+        }
+
+        if (opts.navigateWithArrowKeys && code === "ArrowRight") {
+          handled = true;
+          this.activeChildrenBlocks();
+          this.focus();
+        }
+
+        if (opts.handleDeleteKey && (code === "Delete" || code === "Backspace")) {
+          handled = true;
+          this.deleteActiveBlocks();
+          this.focus();
+        }
+
+        if (handled) ev.preventDefault();
+        else this.emit("keydown", ev, this);
+      },
+    };
+
+    this._setActiveElement = (maybeElement) => {
+      const wasFocused = this._activeElement;
+      const nowFocused = maybeElement;
+      this._activeElement = maybeElement;
+
+      wasFocused?.removeAttribute(focusAnchorDataMark);
+      nowFocused?.setAttribute(focusAnchorDataMark, "");
+
+      if (!!wasFocused === !!nowFocused) return;
+
+      const mod = nowFocused ? "addEventListener" : "removeEventListener";
+      Object.keys(eventListeners).forEach(k => {
+        document.body[mod](k, (eventListeners as any)[k], true);
+      });
+
+      if (!nowFocused) {
+        this.emit("blur", this);
+        this.activeBlocks.forEach(block => block.info.onStatusChange?.(block));
+        this.activeSlot?.info.onStatusChange?.(this.activeSlot);
+      } else {
+        this.emit("focus", this);
+      }
+
+      enableFocusAnchorStyle(!!nowFocused);
+    };
+
+    this.copy = () => {
+      const wasFocused = this.hasFocus;
+      if (!wasFocused) document.body.addEventListener("copy", eventListeners.copy, true);
+      document.execCommand("copy");
+      if (!wasFocused) document.body.removeEventListener("copy", eventListeners.copy, true);
+    };
 
     const populateClipboard = (ev: ClipboardEvent) => {
       const text = this.options.serializeForClipboard(this.dumpSelectedData());
       if (!text) return;
 
+      ev.stopImmediatePropagation();
       ev.preventDefault();
       ev.clipboardData?.setData("text/plain", text);
     };
-    hiddenInput.addEventListener("copy", (ev) => {
-      populateClipboard(ev);
-    }, false);
-    hiddenInput.addEventListener("cut", (ev) => {
-      populateClipboard(ev);
-      this.deleteActiveBlocks();
-    }, false);
-    hiddenInput.addEventListener("paste", (ev) => {
-      ev.preventDefault();
-
-      // const info = this.activeElementInfo;
-      // if (info?.type !== "block") return;
-
-      try {
-        const text = ev.clipboardData?.getData("text/plain");
-        if (!text) return;
-
-        const data = this.options.unserializeForClipboard(text);
-        this.pasteWithData(data);
-      } catch (err) {
-        console.error("Failed to paste!", err);
-      }
-    }, false);
-    hiddenInput.addEventListener("focus", () => {
-      this.hasFocus = true;
-      this.emit("focus", this);
-      this.activeBlocks.forEach(block => block.info.onStatusChange?.(block));
-      this.activeSlot?.info.onStatusChange?.(this.activeSlot);
-    }, false);
-    hiddenInput.addEventListener("blur", () => {
-      this.hasFocus = false;
-      this._lastActiveElement = null;
-      this.emit("blur", this);
-      this.activeBlocks.forEach(block => block.info.onStatusChange?.(block));
-      this.activeSlot?.info.onStatusChange?.(this.activeSlot);
-    }, false);
-    hiddenInput.addEventListener("keydown", (ev) => {
-      const opts = this.options;
-
-      switch (ev.code) {
-        case "KeyA":
-          if (opts.multipleSelect && (ev.ctrlKey || ev.metaKey)) {
-            this.activeBlocks = new Set(
-              Array
-                .from(this.slotOfActiveBlocks?.items || this.activeSlot?.items || [])
-                .sort((a, b) => a.index - b.index)
-            );
-            this.syncActiveElementStatus();
-          }
-          break;
-
-        case "ArrowUp":
-          if (opts.navigateWithArrowKeys) this.activeNextBlock(-1, ev.shiftKey || ev.ctrlKey || ev.metaKey);
-          break;
-
-        case "ArrowDown":
-          if (opts.navigateWithArrowKeys) this.activeNextBlock(+1, ev.shiftKey || ev.ctrlKey || ev.metaKey);
-          break;
-
-        case "ArrowLeft":
-          if (opts.navigateWithArrowKeys) this.activeParentBlock();
-          break;
-
-        case "ArrowRight":
-          if (opts.navigateWithArrowKeys) this.activeChildrenBlocks();
-          break;
-
-        case "Delete":
-        case "Backspace":
-          if (opts.handleDeleteKey) this.deleteActiveBlocks();
-          break;
-
-        case "Tab":
-          {
-            const el = this._lastActiveElement;
-            if (el && "focus" in el) {
-              const nextEl = (el.tabIndex === -1) && el.querySelector("[tabIndex], button, textarea, input, select, a, [contentEditable]") as HTMLElement;
-              if (!nextEl || !("focus" in nextEl)) el.focus();
-              else nextEl.focus();
-            }
-            ev.preventDefault();
-          }
-          break;
-      }
-    }, false);
   }
 
-  focus() {
-    if (document.activeElement === this.hiddenInput) return;
-    // if (this.activeBlocks.size == 0 && !this.activeSlot) return;
+  get hasFocus() {
+    return !!this._activeElement;
+  }
 
-    this._lastActiveElement = document.activeElement;
-    this.hiddenInput.focus();
+  /** @internal use `_setActiveElement` to update `hasFocus` */
+  private _activeElement: Element | null = null;
+
+  /** @internal use `_setActiveElement` to update `hasFocus` */
+  _setActiveElement: (element: Element | null) => void;
+
+  focus() {
+    const preferredElement = [
+      head(this.activeBlocks)?._lastElement,
+      this.activeSlot?._lastElement,
+    ].find(isFocusable) || this._activeElement || document.activeElement || document.body;
+
+    if (this._activeElement !== preferredElement) {
+      // update _activeElement first, then el.focus(), so the "blur" event will not make a flicker
+      this._setActiveElement(preferredElement);
+      (preferredElement as HTMLElement).focus();
+    }
   }
 
   /**
@@ -235,12 +268,9 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   }
 
   /**
-   * Focus the hidden input and write selected blocks' data to the clipboard.
+   * write selected blocks' data to the clipboard.
    */
-  copy() {
-    this.hiddenInput.focus();
-    document.execCommand("copy");
-  }
+  copy: () => void;
 
   /**
    * do a "pasting" action with the data exported by {@link dumpSelectedData}
@@ -334,13 +364,12 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   }
 
   /**
-   * Focus the hidden input and select next n-th block.
+   * Focus and select next n-th block.
    *
    * @param n the relative number to current block. could be negative
    */
   activeNextBlock(n: number, multipleSelectMode = false) {
     const multipleSelect = multipleSelectMode && this.options.multipleSelect;
-    this.focus();
 
     let somethingWasSelected = true;
     let blocks = Array.from(this.activeBlocks);
@@ -400,35 +429,26 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
   }
 
   /**
-   * Focus the hidden input and select parent block of current block.
+   * Focus and select parent block of current block.
    */
   activeParentBlock() {
     const newBlock = this.activeSlot?.ownerBlock;
-    const newSlot = newBlock?.ownerSlot;
+    if (!newBlock) return;
 
-    this.activeSlot = newSlot || null;
+    this.activeSlot = newBlock.ownerSlot || this.activeSlot;
     this.activeBlocks.clear();
-    if (newBlock) this.activeBlocks.add(newBlock);
+    this.activeBlocks.add(newBlock);
+
     this.syncActiveElementStatus();
   }
 
   /**
-   * Focus the hidden input and select current block's first slot and its children.
+   * Focus and select current block's first slot and its children.
    */
   activeChildrenBlocks() {
     const block = head(this.activeBlocks);
     const slot = head(block?.slots);
-    if (!slot) return;
-
-    this.activeSlot = slot;
-    this.activeBlocks.clear();
-    if (this.options.multipleSelect) {
-      slot.items.forEach(block => this.activeBlocks.add(block));
-    } else {
-      const block = head(slot.items);
-      if (block) this.activeBlocks.add(block);
-    }
-    this.syncActiveElementStatus();
+    if (slot) slot.select();
   }
 
   /**
@@ -492,7 +512,10 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     this.lastActiveBlocks = new Set(this.activeBlocks);
     this.slotOfActiveBlocks = slotOfBlocks;
 
-    if (hasChanges) this.emit("activeElementChanged", this);
+    if (hasChanges) {
+      this.emit("activeElementChanged", this);
+      if (!this.activeBlocks.size && !this.activeSlot && this.hasFocus) this._setActiveElement(null);
+    }
   }
 
   isFocusingBlock?: BlockHandler;
@@ -607,18 +630,24 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     this.syncActiveElementStatus();
   }
 
-  handleSlotPointerUp = (slot: SlotHandler, ev?: Pick<PointerEvent, "eventPhase" | "currentTarget">) => {
-    const isCapture = ev && ev.eventPhase === Event.CAPTURING_PHASE;
-    if (!isCapture && this.isFocusingSlot) return;  // in bubble phase: only update isFocusingSlot once
-    this.isFocusingSlot = slot;
-    if (!this.focusingElement) this.focusingElement = ev?.currentTarget as HTMLElement;
+  handleSlotPointerUp = (slot: SlotHandler, ev: Pick<PointerEvent, "eventPhase" | "currentTarget">) => {
+    if (ev.eventPhase === Event.CAPTURING_PHASE || !this.isFocusingSlot) this.isFocusingSlot = slot;
+
+    const target = ev.currentTarget;
+    if (isFocusable(target)) {
+      this.focusingElement ||= target;
+      slot._lastElement = target;
+    }
   };
 
-  handleBlockPointerUp = (block: BlockHandler, ev?: Pick<PointerEvent, "eventPhase" | "currentTarget">) => {
-    const isCapture = ev && ev.eventPhase === Event.CAPTURING_PHASE;
-    if (!isCapture && this.isFocusingBlock) return;  // in bubble phase: only update isFocusingBlock once
-    this.isFocusingBlock = block;
-    if (!this.focusingElement) this.focusingElement = ev?.currentTarget as HTMLElement;
+  handleBlockPointerUp = (block: BlockHandler, ev: Pick<PointerEvent, "eventPhase" | "currentTarget">) => {
+    if (ev.eventPhase === Event.CAPTURING_PHASE || !this.isFocusingBlock) this.isFocusingBlock = block;
+
+    const target = ev.currentTarget;
+    if (isFocusable(target)) {
+      this.focusingElement ||= target;
+      block._lastElement = target;
+    }
   };
 
   handleGlobalPointerUp = (ev: PointerEvent) => {
@@ -647,13 +676,13 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
 
     if (currDOMElement) {
       const root = currDOMElement.getRootNode?.();  // do not directly use "document"
-      if ((root as Document)?.activeElement === currDOMElement) this.focus();
+      if ((root as Document)?.activeElement === currDOMElement) this._setActiveElement(currDOMElement);
     }
   };
 
   dispose() {
+    this._setActiveElement(null);
     this.dragging.dispose();
-    this.hiddenInput.parentElement?.removeChild(this.hiddenInput);
     document.removeEventListener("pointerup", this.handleGlobalPointerUp, false);
   }
 
