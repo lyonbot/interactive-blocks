@@ -197,7 +197,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
         this.emit("focus", this);
       }
 
-      enableFocusAnchorStyle(!!nowFocused);
+      enableFocusAnchorStyle(nowFocused);
     };
 
     this.copy = () => {

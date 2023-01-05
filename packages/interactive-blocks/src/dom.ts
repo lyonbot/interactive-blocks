@@ -10,9 +10,11 @@ export function isFocusable(el: any): el is HTMLElement {
 
 export const focusAnchorDataMark = "data-interactive-blocks-focus-anchor";
 const el = document.createElement("style");
-el.textContent = `[${  focusAnchorDataMark  }] { outline: 0 }`;
+el.textContent = `[${focusAnchorDataMark}] { outline: 0 }`;
 
-export const enableFocusAnchorStyle = wrapAsTrigger((inserted: boolean) => {
-  if (inserted) document.head.appendChild(el);
+export const enableFocusAnchorStyle = wrapAsTrigger((node: Element | null) => {
+  const root = node?.getRootNode();
+
+  if (root) root.appendChild(el);
   else el.remove();
 });
