@@ -9,8 +9,8 @@
     "dev": "vite -c vite.config.js --open"
   },
   "dependencies": {
-    "@lyonbot/interactive-blocks": "^1.1.0",
-    "@lyonbot/interactive-blocks-react": "^1.1.0",
+    "@lyonbot/interactive-blocks": "workspace:^1.1.0",
+    "@lyonbot/interactive-blocks-react": "workspace:^1.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

@@ -20,8 +20,8 @@ importers:
 
   packages/example:
     specifiers:
-      '@lyonbot/interactive-blocks': ^1.0.6
-      '@lyonbot/interactive-blocks-react': ^1.0.0
+      '@lyonbot/interactive-blocks': workspace:^1.1.0
+      '@lyonbot/interactive-blocks-react': workspace:^1.1.0
       '@types/react': ^18.0.12
       '@types/react-dom': ^18.0.5
       react: ^18.2.0
@@ -45,8 +45,8 @@ importers:
 
   packages/example-react-simple:
     specifiers:
-      '@lyonbot/interactive-blocks': ^1.0.7
-      '@lyonbot/interactive-blocks-react': ^1.0.0
+      '@lyonbot/interactive-blocks': ^1.1.0
+      '@lyonbot/interactive-blocks-react': ^1.1.0
       '@types/react': ^18.0.12
       '@types/react-dom': ^18.0.5
       react: ^18.2.0
@@ -70,8 +70,8 @@ importers:
 
   packages/example-vue2-simple:
     specifiers:
-      '@lyonbot/interactive-blocks': ^1.0.7
-      '@lyonbot/interactive-blocks-vue2': ^1.0.0
+      '@lyonbot/interactive-blocks': ^1.1.0
+      '@lyonbot/interactive-blocks-vue2': ^1.1.0
       rimraf: ^3.0.2
       sass: ^1.52.3
       typescript: ^4.4.3
@@ -105,7 +105,7 @@ importers:
 
   packages/interactive-blocks-react:
     specifiers:
-      '@lyonbot/interactive-blocks': ^1.0.6
+      '@lyonbot/interactive-blocks': ^1.1.0
       '@types/react': ^18.0.12
       react: ^18.2.0
       rimraf: ^3.0.2
@@ -120,7 +120,7 @@ importers:
 
   packages/interactive-blocks-vue2:
     specifiers:
-      '@lyonbot/interactive-blocks': ^1.0.6
+      '@lyonbot/interactive-blocks': ^1.1.0
       rimraf: ^3.0.2
       typescript: ^4.4.3
       vite: ^2.6.5
@@ -2496,7 +2496,7 @@ packages:
       source-map: 0.6.1
       vue-template-es2015-compiler: 1.9.1
     optionalDependencies:
-      prettier: mirrors.tencent.com/prettier/2.7.1
+      prettier: 2.7.1
     transitivePeerDependencies:
       - arc-templates
       - atpl
@@ -4243,6 +4243,14 @@ packages:
   /fs.realpath/1.0.0:
     resolution: {integrity: sha1-FQStJSMVjKpA20onh8sBQRmU6k8=, registry: http://mirrors.cloud.tencent.com/npm/}
     dev: true
+
+  /fsevents/2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
 
   /function-bind/1.1.1:
     resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
@@ -6123,7 +6131,7 @@ packages:
     engines: {node: '>=10.0.0'}
     hasBin: true
     optionalDependencies:
-      fsevents: mirrors.tencent.com/fsevents/2.3.2
+      fsevents: 2.3.2
     dev: true
 
   /rollup/2.75.6:
@@ -6843,7 +6851,7 @@ packages:
       resolve: 1.20.0
       rollup: 2.57.0
     optionalDependencies:
-      fsevents: mirrors.tencent.com/fsevents/2.3.2
+      fsevents: 2.3.2
     dev: true
 
   /vite/2.6.5_sass@1.52.3:
@@ -6868,7 +6876,7 @@ packages:
       rollup: 2.57.0
       sass: 1.52.3
     optionalDependencies:
-      fsevents: mirrors.tencent.com/fsevents/2.3.2
+      fsevents: 2.3.2
     dev: true
 
   /vite/2.6.5_stylus@0.58.1:
@@ -6893,7 +6901,7 @@ packages:
       rollup: 2.57.0
       stylus: 0.58.1
     optionalDependencies:
-      fsevents: mirrors.tencent.com/fsevents/2.3.2
+      fsevents: 2.3.2
     dev: true
 
   /vue-template-babel-compiler/1.2.0_ev5jzj74xu2fombjvobqpq452a:
@@ -7113,16 +7121,6 @@ packages:
     name: graceful-fs
     version: 4.2.8
     dev: true
-
-  mirrors.tencent.com/prettier/2.7.1:
-    resolution: {integrity: sha512-ujppO+MkdPqoVINuDFDRLClm7D78qbDt0/NR+wp5FqEZOoTNAjPHWj17QRhu7geIHJfcNhRk1XVQmF8Bp3ye+g==, registry: https://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/prettier/-/prettier-2.7.1.tgz}
-    name: prettier
-    version: 2.7.1
-    engines: {node: '>=10.13.0'}
-    hasBin: true
-    requiresBuild: true
-    dev: true
-    optional: true
 
   mirrors.tencent.com/to-fast-properties/2.0.0:
     resolution: {integrity: sha1-3F5pjL0HkmW8c+A3doGk5Og/YW4=, registry: https://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/to-fast-properties/-/to-fast-properties-2.0.0.tgz}
