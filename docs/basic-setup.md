@@ -112,7 +112,7 @@ To support drag-and-drop, extra effort is required. [Please refer to this _later
       | `isActive && !hasFocus` | active but not focused | dim blue      |
       | `isActive && hasFocus`  | active (aka. selected) | bright blue   |
 
-    - (optional) display `blockHandler.activeNumber` for multiple selection
+    - (optional) if selected, display `blockHandler.activeNumber` - the order number in current selection
 
 ## 🤔 The correct way to pass data
 
@@ -206,9 +206,7 @@ Additionally, drag-and-drop will introduces some extra events, please read [drag
 
 ### `hasFocus` and keyboard shortcuts
 
-BlockContext handles keyboard and clipboard events via a hidden input (`blockContext.hiddenInput`).
-
-Therefore, keyboard shortcuts (`Ctrl+C`, `Ctrl+V`, arrow keys...) work only when **hiddenInput** is focused.
+All keyboard shortcuts (`Ctrl+C`, `Ctrl+V`, arrow keys...) work only when `hasFocus`.
 
 - To check whether it is focused, read `blockContext.hasFocus`.
 
@@ -218,7 +216,16 @@ Therefore, keyboard shortcuts (`Ctrl+C`, `Ctrl+V`, arrow keys...) work only when
 
 When `hasFocus` is true, it's suggested to add a visual feedback (an outline, for example) to the root component.
 
-To implement more keyboard shortcuts, call `blockContext.hiddenInput.addEventListener('keydown', ...)`
+To implement more keyboard shortcuts:
+
+```js
+blockContext.on("keydown", (event, ctx) => {
+  if (event.keyCode === "F12") {
+    console.log("Hello World");
+    event.preventDefault();
+  }
+});
+```
 
 <br/>
 
@@ -473,4 +480,5 @@ There are 3 status based on `isActive, hasFocus` of `blockHandler`
 | `isActive && !hasFocus` | active but not focused | dim blue      |
 | `isActive && hasFocus`  | active (aka. selected) | bright blue   |
 
-Additionally, to help user make multiple-selection, please display `blockHandler.activeNumber` in the block. The value will be 0, 1, 2... if multiple blocks are active (aka. selected)!
+Additionally, if selected, you may display `blockHandler.activeNumber` in the block.
+It's the order number in current selection, which could be `0, 1, 2...` if selected, or `false` if not selected!
