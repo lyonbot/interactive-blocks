@@ -1,6 +1,6 @@
 export interface BlockDOMEventHandlers {
   pointerUp?(ev: Pick<PointerEvent, "eventPhase" | "currentTarget">): void;
-  dragStart?(ev: Pick<DragEvent, "stopPropagation" | "dataTransfer" | "clientX" | "clientY">): void;
+  dragStart?(ev: Pick<DragEvent, "stopPropagation" | "dataTransfer" | "clientX" | "clientY" | "target" | "currentTarget">): void;
   dragLeave?(ev: Pick<DragEvent, never>): void;
   dragOver?(ev: Pick<DragEvent, never>): void;
   dragEnd?(ev: Pick<DragEvent, never>): void;
