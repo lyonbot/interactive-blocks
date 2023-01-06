@@ -7,7 +7,7 @@ import { IBMoveBetweenSlotsAction, IBMoveInSlotAction, IBSlotBeforeDropAction } 
 import { reduce } from "./itertools";
 import { IBBlockDragStartAction } from "./action";
 import { FirstParameter } from "./domEvents";
-import { isFocusable } from "./dom";
+import { getRootOfNode, isFocusable, isInputBox } from "./dom";
 
 const isWebKit = "webkitRequestAnimationFrame" in window;
 const MIME_CTX_UUID = "x-block-context/uuid";
@@ -163,7 +163,7 @@ export class DraggingContext extends EventEmitter<DraggingContextEvents> {
     const dataTransfer = ev.dataTransfer;
     if (!dataTransfer) return;
 
-    if (ev.target !== ev.currentTarget && isFocusable(ev.target)) return;
+    if (isInputBox(getRootOfNode(ev.target)?.activeElement)) return;
     if (!this.ctx.activeBlocks.has(block)) this.ctx.addBlockToSelection(block, "none");
 
     const text = this.ctx.options.serializeForClipboard(this.ctx.dumpSelectedData());

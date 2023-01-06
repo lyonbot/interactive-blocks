@@ -5,7 +5,7 @@ import { DraggingContext } from "./DraggingContext";
 import { find, head } from "./itertools";
 import { SlotHandler, SlotInfo } from "./SlotHandler";
 import { MultipleSelectType, normalizeMultipleSelectType } from "./MultipleSelectType";
-import { enableFocusAnchorStyle, focusAnchorDataMark, isFocusable } from "./dom";
+import { enableFocusAnchorStyle, focusAnchorDataMark, getRootOfNode, isFocusable } from "./dom";
 
 export interface BlockContextEvents {
   activeElementChanged(ctx: BlockContext): void;
@@ -675,8 +675,8 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     // move focus to the hidden element, if needed
 
     if (currDOMElement) {
-      const root = currDOMElement.getRootNode?.();  // do not directly use "document"
-      if ((root as Document)?.activeElement === currDOMElement) this._setActiveElement(currDOMElement);
+      const root = getRootOfNode(currDOMElement); // do not directly use "document"
+      if (root?.activeElement === currDOMElement) this._setActiveElement(currDOMElement);
     }
   };
 
