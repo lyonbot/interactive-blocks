@@ -49,6 +49,7 @@ importers:
       '@lyonbot/interactive-blocks-react': ^1.1.0
       '@types/react': ^18.0.26
       '@types/react-dom': ^18.0.10
+      immer: ^9.0.18
       react: ^18.2.0
       react-dom: ^18.2.0
       rimraf: ^3.0.2
@@ -58,6 +59,7 @@ importers:
     dependencies:
       '@lyonbot/interactive-blocks': link:../interactive-blocks
       '@lyonbot/interactive-blocks-react': link:../interactive-blocks-react
+      immer: 9.0.18
       react: 18.2.0
       react-dom: 18.2.0_react@18.2.0
     devDependencies:
@@ -2652,7 +2654,7 @@ packages:
     resolution: {integrity: sha512-iCuPHDFgrHX7H2vEI/5xpz07zSHB00TpugqhmYtVmMO6518mCuRMoOYFldEBl0g187ufozdaHgWKcYFb61qGiA==}
     dependencies:
       balanced-match: 1.0.2
-      concat-map: mirrors.tencent.com/concat-map/0.0.1
+      concat-map: 0.0.1
     dev: true
 
   /brace-expansion/2.0.1:
@@ -2855,6 +2857,10 @@ packages:
 
   /commondir/1.0.1:
     resolution: {integrity: sha1-3dgA2gxmEnOTzKWVDqloo6rxJTs=}
+    dev: true
+
+  /concat-map/0.0.1:
+    resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=, registry: http://mirrors.cloud.tencent.com/npm/}
     dev: true
 
   /concat-with-sourcemaps/1.1.0:
@@ -4194,6 +4200,10 @@ packages:
     resolution: {integrity: sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==}
     engines: {node: '>= 4'}
     dev: true
+
+  /immer/9.0.18:
+    resolution: {integrity: sha512-eAPNpsj7Ax1q6Y/3lm2PmlwRcFzpON7HSNQ3ru5WQH1/PSpnyed/HpNOELl2CxLKoj4r+bAHgdyKqW5gc2Se1A==}
+    dev: false
 
   /immutable/4.2.2:
     resolution: {integrity: sha512-fTMKDwtbvO5tldky9QZ2fMX7slR0mYpY5nbnFWYp0fOzDhHqhgIw9KoYgxLWsoNTS9ZHGauHj18DTyEw6BK3Og==}
@@ -6797,12 +6807,6 @@ packages:
     dependencies:
       '@nodelib/fs.stat': 2.0.5
       run-parallel: 1.2.0
-    dev: true
-
-  mirrors.tencent.com/concat-map/0.0.1:
-    resolution: {integrity: sha1-2Klr13/Wjfd5OnMDajug1UBdR3s=, registry: http://mirrors.cloud.tencent.com/npm/, tarball: https://mirrors.tencent.com/npm/concat-map/-/concat-map-0.0.1.tgz}
-    name: concat-map
-    version: 0.0.1
     dev: true
 
   mirrors.tencent.com/mdn-data/2.0.14:

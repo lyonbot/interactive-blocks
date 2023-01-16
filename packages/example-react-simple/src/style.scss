@@ -5,7 +5,7 @@ $highlightColor: #369;
   padding: 20px;
   box-shadow: 0 2px 5px #0003;
 
-  &.isActive {
+  &.isSelected {
     outline: 1px solid $highlightColor;
   }
 
@@ -21,7 +21,7 @@ $highlightColor: #369;
   flex-direction: column;
   gap: 20px;
 
-  &.isActive {
+  &.isSelected {
     // maybe not necessary?
     // outline: 1px dotted $highlightColor; 
   }

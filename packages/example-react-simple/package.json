@@ -11,6 +11,7 @@
   "dependencies": {
     "@lyonbot/interactive-blocks": "^1.1.0",
     "@lyonbot/interactive-blocks-react": "^1.1.0",
+    "immer": "^9.0.18",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
   },

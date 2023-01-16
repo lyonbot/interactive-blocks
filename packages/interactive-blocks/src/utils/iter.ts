@@ -1,10 +1,5 @@
 export type Predicate<T> = (value: T, index: number) => boolean;
-export type MaybeArray<T> = Array<T | null | undefined> | T | null | undefined;
 
-export function toArray<T>(value: MaybeArray<T>) {
-  if (!Array.isArray(value)) value = [value];
-  return value.filter(x => x != null) as T[];
-}
 
 export function find<T>(iterator: Iterable<T> | null | undefined, predicate: Predicate<T>): T | undefined {
   if (!iterator) return;

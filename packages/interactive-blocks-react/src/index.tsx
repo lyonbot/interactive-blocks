@@ -1,79 +1,87 @@
-import {
-  BlockContext,
-  BlockContextOptions,
-  BlockHandler,
-  BlockInfo,
-  SlotHandler,
-  SlotInfo
-} from "@lyonbot/interactive-blocks";
-
 import * as React from "react";
 import { useRef, useContext, useMemo, useEffect } from "react";
+import { IBContext, IBSlot, IBBlock, IBContextOptions, IBSlotOptions, IBBlockOptions } from "@lyonbot/interactive-blocks";
 
 // IB = interactive-blocks
 
-export const ReactIBRootContext = React.createContext<BlockContext | null>(null);
-export const ReactIBSlotContext = React.createContext<SlotHandler | null>(null);
-export const ReactIBBlockContext = React.createContext<BlockHandler | null>(null);
+const ReactIBContext = React.createContext<IBContext | null>(null);
+const ReactIBSlot = React.createContext<IBSlot | null>(null);
+const ReactIBBlock = React.createContext<IBBlock | null>(null);
+
+export const useIBContext = () => useContext(ReactIBContext);
+export const useIBSlot = () => useContext(ReactIBSlot);
+export const useIBBlock = () => useContext(ReactIBBlock);
+
+/**
+ * like `useRef()` but the `ref.value` is always the last value that `useLatestRef()` get
+ */
+export function useLatestRef<T = any>(value: T) {
+  const ref = useRef<T>(value);
+  ref.current = value;
+
+  return ref;
+}
 
 // a wrapper to reset everything
 // note: with Vue, this can be much shorter
 
 interface RootProps {
-  options?: BlockContextOptions;
-  onMount?(ctx: BlockContext): void;
-  onUnmount?(ctx: BlockContext): void;
+  multipleSelect?: boolean;
+  options?: IBContextOptions;
+  onMount?(ctx: IBContext): void;
+  onUnmount?(ctx: IBContext): void;
 
   children?: React.ReactNode;
 }
 
-export const ReactInteractiveBlocksRoot = React.memo(
-  (props: RootProps) => {
-    const lastProps = useRef<RootProps | null>(props);
-    const blockContext = useMemo(() => new BlockContext(props.options), []);
+export const ReactIBRoot = React.memo((props: RootProps) => {
+  const lastProps = useLatestRef(props);
+  const blockContext = useMemo(() => new IBContext(props.options || {}), []);
 
-    lastProps.current = props;
-    useEffect(() => {
-      lastProps.current?.onMount?.(blockContext);
-      return () => {
-        lastProps.current?.onUnmount?.(blockContext);
-        blockContext.dispose();
-      };
-    }, []);
+  useEffect(() => {
+    lastProps.current?.onMount?.(blockContext);
+    return () => {
+      lastProps.current?.onUnmount?.(blockContext);
+      blockContext.dispose();
+    };
+  }, [])
 
-    return (
-      <ReactIBRootContext.Provider value={blockContext}>
-        <ReactIBBlockContext.Provider value={null}>
-          <ReactIBSlotContext.Provider value={null}>
-            {props.children}
-          </ReactIBSlotContext.Provider>
-        </ReactIBBlockContext.Provider>
-      </ReactIBRootContext.Provider>
-    );
-  }
-);
+  useEffect(() => {
+    blockContext.options = {
+      multipleSelect: !!props.multipleSelect,
+      ...props.options,
+    }
+  }, [props.options, props.multipleSelect, blockContext])
 
-export const useIBBlockContext = () => useContext(ReactIBRootContext);
-export const useOwnerSlot = () => useContext(ReactIBSlotContext);
-export const useOwnerBlock = () => useContext(ReactIBBlockContext);
+  return (
+    <ReactIBContext.Provider value={blockContext}>
+      <ReactIBBlock.Provider value={null}>
+        <ReactIBSlot.Provider value={null}>
+          {props.children}
+        </ReactIBSlot.Provider>
+      </ReactIBBlock.Provider>
+    </ReactIBContext.Provider>
+  );
+})
+
+type ExtendedProps<T> = {
+  onStatusChange?(target: T): void
+}
 
 /**
  * For custom slot component
  */
-export function useSlotHandler(getSlotInfo: () => SlotInfo) {
-  const blockContext = useContext(ReactIBRootContext);
-  const ownerBlock = useContext(ReactIBBlockContext); // could be null if this slot is directly under Root
+export function useSlotHandler(_opt: IBSlotOptions & ExtendedProps<IBSlot>) {
+  const blockContext = useIBContext()
+  const ownerBlock = useIBBlock(); // could be null if this slot is directly under Root
+  const options = useLatestRef(_opt)
 
   if (!blockContext) {
     throw new Error("No interactive-block BlockContext");
   }
 
-  const slotHandler = useMemo(() => {
-    const parent = ownerBlock || blockContext;
-    const slotInfo = getSlotInfo();
-
-    return parent.createSlot(slotInfo);
-  }, []);
+  const slot = useMemo(() => new IBSlot(ownerBlock || blockContext, options.current), []);
+  slot.options = options.current
 
   // when component unmount, dispose the slotHandler
   useEffect(() => {
@@ -81,89 +89,75 @@ export function useSlotHandler(getSlotInfo: () => SlotInfo) {
     // add more init code here ...
     // -----
 
+    slot.on('statusChange', () => options.current.onStatusChange?.(slot))
+
     return function disposer() {
-      slotHandler.dispose();
+      slot.dispose();
     };
-  }, [slotHandler]);
+  }, [slot]);
 
   const returns = useMemo(() => {
-    const domEvents = slotHandler.getDOMEvents("react");
+    const domEvents = { onPointerDown: slot.handlePointerDown as unknown as React.PointerEventHandler }
+    const domProps = { tabIndex: -1, ...domEvents }
 
     return ({
       blockContext,
       ownerBlock,
-      slotHandler,
-      handleSlotPointerUp: domEvents.onPointerUp,
-      divProps: {
-        tabIndex: -1,
-        ...domEvents,
-      },
+      slot,
+      domEvents,
+      domProps,
       SlotWrapper: (props: React.PropsWithChildren) => (
-        <ReactIBSlotContext.Provider value={slotHandler}>
-          {props.children}
-        </ReactIBSlotContext.Provider>
+        <ReactIBSlot.Provider value={slot}>{props.children}</ReactIBSlot.Provider>
       ),
     });
   }, []);
+
   return returns;
 }
 
-// for block component
-
-export function useBlockHandler(getBlockInfo: () => BlockInfo) {
-  const blockContext = useContext(ReactIBRootContext);
-  const ownerSlot = useContext(ReactIBSlotContext); // could be null if this block is directly under Root
+/**
+ * For custom slot component
+ */
+export function useBlockHandler(_opt: IBBlockOptions & ExtendedProps<IBBlock>) {
+  const blockContext = useIBContext()
+  const ownerSlot = useIBSlot(); // could be null if this block is directly under Root
+  const options = useLatestRef(_opt)
 
   if (!blockContext) {
     throw new Error("No interactive-block BlockContext");
   }
 
-  const blockHandler = useMemo(() => {
-    const parent = ownerSlot || blockContext;
-    const blockInfo = getBlockInfo();
+  const block = useMemo(() => new IBBlock(ownerSlot || blockContext, options.current), []);
+  block.options = options.current
 
-    return parent.createBlock(blockInfo);
-  }, []);
-
-  // when component unmount, dispose the blockHandler
+  // when component unmount, dispose the slotHandler
   useEffect(() => {
     // -----
     // add more init code here ...
     // -----
 
+    block.on('statusChange', () => options.current.onStatusChange?.(block))
+
     return function disposer() {
-      blockHandler.dispose();
+      block.dispose();
     };
-  }, [blockHandler]);
+  }, [block]);
 
   const returns = useMemo(() => {
-    const domEvents = blockHandler.getDOMEvents("react");
+    const domEvents = { onPointerDown: block.handlePointerDown as unknown as React.PointerEventHandler }
+    const domProps = { tabIndex: -1, ...domEvents }
 
     return ({
       blockContext,
       ownerSlot,
-      blockHandler,
-      handleBlockPointerUp: domEvents.onPointerUp,
-      divProps: {
-        tabIndex: -1,
-        ...domEvents,
-      },
+      slot: block,
+      domEvents,
+      domProps,
       BlockWrapper: (props: React.PropsWithChildren) => (
-        <ReactIBBlockContext.Provider value={blockHandler}>
-          {props.children}
-        </ReactIBBlockContext.Provider>
+        <ReactIBBlock.Provider value={block}>{props.children}</ReactIBBlock.Provider>
       ),
     });
   }, []);
 
   return returns;
-}
-
-// utils
-
-export function useLatestRef<T = any>(value: T) {
-  const ref = useRef<T>(value);
-  ref.current = value;
-
-  return ref;
 }

@@ -98,7 +98,9 @@ function bindPhase2Listeners(ctx: IBContext) {
     // update context's focus status -- `hasFocus`
 
     const wantedActiveElement = trace?.trace[0]?.el;
-    const hasFocus = !!wantedActiveElement && (document.activeElement === wantedActiveElement);
+    const actualActiveElement = !('pointerId' in ev) ? ev.relatedTarget : document.activeElement
+    const hasFocus = !!wantedActiveElement && (actualActiveElement === wantedActiveElement);
+
     const focusStatusChanged = ctx.hasFocus !== hasFocus;
 
     ctx.hasFocus = hasFocus;

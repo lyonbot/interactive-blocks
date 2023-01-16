@@ -5,6 +5,7 @@ import { IBContext } from "./IBContext";
 import { emptyFn } from "./utils/fn";
 
 interface IBElementFundamental {
+  options: any;
   ctx: IBContext;
   depth: number;
   children: Set<IBElementFundamental>;
@@ -29,6 +30,8 @@ export abstract class IBElementBase<
   ParentType extends IBElementFundamental,
   ChildType extends IBElementFundamental = ParentType
 > extends TypedEmitter<Events> implements IBElementFundamental {
+  abstract options: any
+
   readonly is: TypeName;
   readonly ctx: IBContext;
   readonly depth: number;

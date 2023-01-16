@@ -59,7 +59,7 @@ export interface IBMoveAction extends IBAction {
   /**
    * the new position of the first block
    */
-  toIndex: number[];
+  toIndex: number;
 }
 
 export interface IBTransferIntoAction extends IBAction {

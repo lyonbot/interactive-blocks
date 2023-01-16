@@ -6,7 +6,7 @@ import { IBBlock, IBSlot } from "./IBElement";
 import { emitSelectionChangeEvents, startDiffSelection, updateSelection } from "./core-internals/selection";
 import { setupInteractionSelectFocus } from "./core-internals/interaction-select-focus";
 import { setupInteractionKeydown } from "./core-internals/interaction-keydown";
-import { MaybeArray } from "./utils/iter";
+import { MaybeArray } from "./utils/array";
 
 export class IBContext extends TypedEmitter<IBContextEvents> {
   static setupHook = new SyncHook<[IBContext, IBContextOptions]>(["context", "options"]);

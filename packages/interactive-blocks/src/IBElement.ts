@@ -1,5 +1,5 @@
 import { IBContext } from "./IBContext";
-import { IBBlockEvents, IBSlotEvents } from "./definitions";
+import { IBBlockEvents, IBBlockOptions, IBSlotEvents, IBSlotOptions } from "./definitions";
 import { IBElementBase } from "./IBElementBase";
 
 export type IBElement = IBBlock | IBSlot;
@@ -13,8 +13,11 @@ export type IBElement = IBBlock | IBSlot;
  * the block `data` may contain lots of data fields, or just single value.
  */
 export class IBBlock extends IBElementBase<"block", IBBlockEvents, IBSlot> {
-  constructor(parent: IBContext | IBSlot) {
+  options: IBBlockOptions
+
+  constructor(parent: IBContext | IBSlot, options: IBBlockOptions) {
     super("block", parent);
+    this.options = options
     this.ctx.hooks.blockCreated.call(this);
     this.ctx.blocks.add(this);
   }
@@ -38,8 +41,11 @@ export class IBBlock extends IBElementBase<"block", IBBlockEvents, IBSlot> {
  * The slot `data` shall be a JavaScript array.
  */
 export class IBSlot extends IBElementBase<"slot", IBSlotEvents, IBBlock> {
-  constructor(parent: IBContext | IBBlock) {
+  options: IBSlotOptions;
+
+  constructor(parent: IBContext | IBBlock, options: IBSlotOptions) {
     super("slot", parent);
+    this.options = options
     this.ctx.hooks.slotCreated.call(this);
     this.ctx.slots.add(this);
   }

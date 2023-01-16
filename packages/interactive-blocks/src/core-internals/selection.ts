@@ -1,8 +1,9 @@
 import { IBBlock, IBSlot } from "../IBElement";
 import { IBContext } from "../IBContext";
 import { MultipleSelectType, normalizeMultipleSelectType } from "../utils/multiple-select";
-import { head, MaybeArray, toArray } from "../utils/iter";
+import { head } from "../utils/iter";
 import { findCommonSlot, liftBlock } from "./relation";
+import { MaybeArray, toArray } from "../utils/array";
 
 export function startDiffSelection(ctx: IBContext) {
   const lastSlot = ctx.selectedSlot;

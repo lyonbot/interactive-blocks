@@ -1,80 +1,77 @@
 import * as React from "react";
-import { useLatestRef, useSlotHandler } from "@lyonbot/interactive-blocks-react";
+import { useSlotHandler } from "@lyonbot/interactive-blocks-react";
 import { store, DataItem } from "../store";
 import { MyBlock } from "./MyBlock";
 import { PathArray } from "../utils/createStore";
+import { removeItems } from "@lyonbot/interactive-blocks";
 
 /**
  * Custom slot component.
  *
- * - `path` - example: `[2, "children"]`
+ * - `ownerPath` - example: `[2, "children", 1]` or `[]`
  */
-export function MySlot(props: { path: PathArray }) {
+export function MySlot(props: { ownerPath: PathArray }) {
   const [statusClassNames, setStatusClassNames] = React.useState("");
-  const value = store.use(props.path) as DataItem[] | undefined;
 
-  /**
-   * ❗ `useSlotHandler` only run once,
-   *    therefore, to read latest props value inside it, we need a consistent Ref `propsRef`
-   *    and use `propsRef.current` to get the newest prop values
-   */
-  const propsRef = useLatestRef(props);
-  const { divProps, SlotWrapper } = useSlotHandler(() => ({
+  const [ownerData, updateOwnerData] = store.use<DataItem>(props.ownerPath)
+  const items = ownerData.children
+
+  const { domProps, SlotWrapper } = useSlotHandler({
     onStatusChange: (slot) => {
       let ans = "";
-      if (slot.isActive) ans += " isActive";
+      if (slot.isSelected) ans += " isSelected";
       if (slot.hasFocus) ans += " hasFocus";
 
       setStatusClassNames(ans);
     },
 
-    // for slot
-    onCut: (action) => {
-      /**
-       * ❗ delete items at `action.indexes`
-       */
+    handleInsert(action) {
+      updateOwnerData(data => {
+        if (!Array.isArray(data.children)) data.children = []
 
-      const path = propsRef.current!.path;
-      const newList: DataItem[] = (store.get(path) || []).slice();
-
-      // in newList, delete them one-by-one
-      action.indexesDescending.forEach(index => { newList.splice(index, 1); });
-
-      store.set(path, newList);
+        data.children.splice(action.index, 0, ...action.itemsData)
+      })
     },
 
-    onPaste: (action) => {
-      /**
-       * ❗ read `action.data.blocksData` ( from Block component's `data` getter )
-       * ❗ and insert into the list, at `action.index`
-       */
+    handleMove(action) {
+      updateOwnerData(data => {
+        if (!Array.isArray(data.children)) data.children = []
 
-      const path = propsRef.current!.path;
-      const newList: DataItem[] = (store.get(path) || []).slice();
-
-      newList.splice(action.index, 0, ...action.data.blocksData);
-      store.set(path, newList);
+        const itemsData = removeItems(data.children, action.indexes)
+        data.children.splice(action.toIndex, 0, ...itemsData)
+      })
     },
-  }));
+
+    handleRemove(action) {
+      updateOwnerData(data => {
+        if (!Array.isArray(data.children)) data.children = []
+
+        removeItems(data.children, action.indexes)
+      })
+    },
+
+    handleTransferInto(action) {
+      // TODO: implement
+    },
+  });
 
 
   // ******************************
   const addItem = React.useCallback(() => {
-    const path = propsRef.current!.path;
-    const newList: DataItem[] = (store.get(path) || []).slice();
-
-    newList.push({ name: "new item" });
-    store.set(path, newList);
+    updateOwnerData(data => {
+      if (!Array.isArray(data.children)) data.children = []
+      data.children.push({ name: "new item" });
+    })
   }, []);
 
 
   // ............
   // ❗ 1. Must be wrapped by <SlotWrapper>
-  // ❗ 2. Must have {...divProps}
+  // ❗ 2. Must have {...domProps}
 
   return <SlotWrapper>
-    <div {...divProps} className={`mySlot ${statusClassNames}`}>
-      {value?.map((item, index) => <MyBlock key={index} path={[...props.path, index]} />)}
+    <div {...domProps} className={`mySlot ${statusClassNames}`}>
+      {items?.map((item, index) => <MyBlock key={index} path={[...props.ownerPath, 'children', index]} />)}
 
       <button className="mySlot-addButton" onClick={addItem}>+</button>
     </div>
