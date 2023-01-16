@@ -23,6 +23,7 @@ module.exports = {
     "quote-props": ["error", "consistent-as-needed"],
     "@typescript-eslint/quotes": ["error", "double"],
     "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/comma-dangle": ["error", {

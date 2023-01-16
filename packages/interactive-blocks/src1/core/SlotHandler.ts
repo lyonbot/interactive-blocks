@@ -1,9 +1,9 @@
-import type { IBCutAction, IBPasteAction } from "./action";
+import type { IBRemoveAction, IBInsertAction } from "./action";
 import type { BlockContext } from "./BlockContext";
 import type { BlockHandler, BlockInfo } from "./BlockHandler";
-import { EventKeyStyle, GetDOMEventsOptions, getStyledEventHandlersLUT, revokableFn, SlotDOMEventHandlers, StyledEventLUT } from "./domEvents";
-import { head } from "./itertools";
-import { assign } from "./utils";
+import { EventKeyStyle, GetDOMEventsOptions, getStyledEventHandlersLUT, revokableFn, SlotDOMEventHandlers, StyledEventLUT } from "../domEvents";
+import { head } from "../itertools";
+import { assign } from "../utils";
 
 export { SlotDOMEventHandlers };
 
@@ -14,14 +14,14 @@ export interface SlotInfo {
    *
    * ❗ you shall implement the "delete" logic here
    */
-  onCut?(action: IBCutAction): void;
+  onCut?(action: IBRemoveAction): void;
 
   /**
    * called when we want to insert some blocks into this slot.
    *
    * ❗ you shall implement the "insert" logic here
    */
-  onPaste?(action: IBPasteAction): void;
+  onPaste?(action: IBInsertAction): void;
 
   /**
    * called when `isActive` or `hasFocus` is changed.

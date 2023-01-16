@@ -1,11 +1,11 @@
-import { BlockDOMEventHandlers, BlockHandler } from "./BlockHandler";
-import { SlotDOMEventHandlers, SlotHandler } from "./SlotHandler";
-import { BlockContext } from "./BlockContext";
+import { BlockDOMEventHandlers, BlockHandler } from "./core/BlockHandler";
+import { SlotDOMEventHandlers, SlotHandler } from "./core/SlotHandler";
+import { BlockContext } from "./core/BlockContext";
 import { throttle } from "./utils";
 import { EventEmitter } from "./EventEmitter";
-import { IBMoveBetweenSlotsAction, IBMoveInSlotAction, IBSlotBeforeDropAction } from "./action";
+import { IBMoveBetweenSlotsAction, IBMoveInSlotAction, IBSlotBeforeDropAction } from "./core/action";
 import { reduce } from "./itertools";
-import { IBBlockDragStartAction } from "./action";
+import { IBBlockDragStartAction } from "./core/action";
 import { FirstParameter } from "./domEvents";
 import { getRootOfNode, isFocusable, isInputBox } from "./dom";
 

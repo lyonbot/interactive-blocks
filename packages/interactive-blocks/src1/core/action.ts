@@ -2,51 +2,30 @@ import type { BlockHandler } from "./BlockHandler";
 import type { SlotHandler } from "./SlotHandler";
 import type { BlockContext } from "./BlockContext";
 
-export interface IBClipboardData {
-  readonly isIBClipboardData: true;
-  readonly ibContextBrand: string;
-  readonly ibContextUUID?: string;
-  readonly blocksData: any[];
-}
-
-export function isIBClipboardData(data: any, limitToBrand?: string): data is IBClipboardData {
-  if (typeof data !== "object" || !data) return false;
-
-  if (data.isIBClipboardData !== true) return false;
-  if (typeof limitToBrand === "string" && limitToBrand !== data.ibContextBrand) return false;
-  if (typeof data.ibContextBrand !== "string") return false;
-
-  if ("ibContextUUID" in data && typeof data.ibContextUUID !== "string") return false;
-  if (!Array.isArray(data.blocksData)) return false;
-  if (data.blocksData.some((x: any) => typeof x !== "object" || x === null)) return false;
-
-  return true;
-}
-
 /** a utils for typescript, to make a data class with `preventDefault` and `returnValue` */
-const actionClass = <T>() => {
-  type ActionClass = T & { preventDefault(): void; returnValue: boolean };
-  function Action(this: ActionClass, x: T) {
+export const actionClass = <T>() => {
+  type PreventDefaultAble = { preventDefault(): void; returnValue: boolean };
+  type ActionType = T & PreventDefaultAble;
+
+  function Action(this: ActionType, x: T) {
     Object.assign(this, x);
     this.returnValue = true;
     this.preventDefault = () => { this.returnValue = false; };
   }
 
-  return Action as unknown as new (data: T) => ActionClass;
+  return Action as unknown as new (data: T) => ActionType;
 };
 
-export type IBPasteAction = InstanceType<typeof IBPasteAction>;
-export const IBPasteAction = actionClass<{
-  readonly type: "paste";
+export class IBInsertAction extends actionClass<{
+  readonly type: "insert";
   readonly ctx: BlockContext;
-  readonly data: IBClipboardData; // data from clipboard
   readonly slot: SlotHandler;
   readonly index: number; // insert before which item
-}>();
+  readonly blocksData: any[]; // data from clipboard
+}>() { }
 
-export type IBCutAction = InstanceType<typeof IBCutAction>;
-export const IBCutAction = actionClass<{
-  readonly type: "cut";
+export class IBRemoveAction extends actionClass<{
+  readonly type: "remove";
   readonly ctx: BlockContext;
   readonly slot: SlotHandler;
 
@@ -73,10 +52,9 @@ export const IBCutAction = actionClass<{
    * ```
    */
   readonly indexesDescending: number[];
-}>();
+}>() { }
 
-export type IBMoveInSlotAction = InstanceType<typeof IBMoveInSlotAction>;
-export const IBMoveInSlotAction = actionClass<{
+export class IBMoveInSlotAction extends actionClass<{
   readonly type: "moveInSlot";
   readonly ctx: BlockContext;
   readonly slot: SlotHandler;
@@ -84,10 +62,9 @@ export const IBMoveInSlotAction = actionClass<{
   readonly blocks: BlockHandler[];
   /** position after removing blocks, before inserting */
   readonly index: number;
-}>();
+}>() { }
 
-export type IBMoveBetweenSlotsAction = InstanceType<typeof IBMoveBetweenSlotsAction>;
-export const IBMoveBetweenSlotsAction = actionClass<{
+export class IBMoveBetweenSlotsAction extends actionClass<{
   readonly type: "moveBetweenSlots";
   readonly ctx: BlockContext;
 
@@ -97,12 +74,9 @@ export const IBMoveBetweenSlotsAction = actionClass<{
 
   readonly toSlot: SlotHandler;
   readonly index: number;
-}>();
+}>() { }
 
-export type IBAction = IBPasteAction | IBCutAction | IBMoveInSlotAction | IBMoveBetweenSlotsAction;
-
-export type IBBlockDragStartAction = InstanceType<typeof IBBlockDragStartAction>;
-export const IBBlockDragStartAction = actionClass<{
+export class IBBlockDragStartAction extends actionClass<{
   readonly type: "blockDragStart";
   readonly ctx: BlockContext;
   /** all selected blocks that will be dragged */
@@ -114,10 +88,9 @@ export const IBBlockDragStartAction = actionClass<{
 
   /** text content that writes to the dataTransfer. can be updated here. */
   text: string;
-}>();
+}>() { }
 
-export type IBSlotBeforeDropAction = InstanceType<typeof IBSlotBeforeDropAction>;
-export const IBSlotBeforeDropAction = actionClass<{
+export class IBSlotBeforeDropAction extends actionClass<{
   readonly type: "slotBeforeDrop";
   readonly ctx: BlockContext;
   readonly slot: SlotHandler;
@@ -130,4 +103,4 @@ export const IBSlotBeforeDropAction = actionClass<{
   readonly event: DragEvent;
   readonly dropEffect: "none" | "copy" | "link" | "move";
   readonly dataTransfer: DataTransfer;
-}>();
+}>() { }

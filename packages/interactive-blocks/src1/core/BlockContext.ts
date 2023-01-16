@@ -1,18 +1,25 @@
-import { EventEmitter } from "./EventEmitter";
-import { IBPasteAction, IBCutAction, IBClipboardData, isIBClipboardData, IBMoveInSlotAction, IBMoveBetweenSlotsAction } from "./action";
+import { EventEmitter } from "../EventEmitter";
+import { IBInsertAction, IBRemoveAction, IBMoveInSlotAction, IBMoveBetweenSlotsAction } from "./action";
+import { IBClipboardData, isIBClipboardData } from "../clipboard/clipboardData";
 import { BlockHandler, BlockInfo } from "./BlockHandler";
-import { DraggingContext } from "./DraggingContext";
-import { find, head } from "./itertools";
+import { DraggingContext } from "../DraggingContext";
+import { find, head } from "../itertools";
 import { SlotHandler, SlotInfo } from "./SlotHandler";
-import { MultipleSelectType, normalizeMultipleSelectType } from "./MultipleSelectType";
-import { enableFocusAnchorStyle, focusAnchorDataMark, getRootOfNode, isFocusable } from "./dom";
+import { MultipleSelectType, normalizeMultipleSelectType } from "../MultipleSelectType";
+import { enableFocusAnchorStyle, focusAnchorDataMark, getRootOfNode, isFocusable } from "../dom";
+
+export interface CoreIBContextEvents {
+  activeElementChanged(ctx: BlockContext): void;
+  focus(ctx: BlockContext): void;
+  blur(ctx: BlockContext): void;
+}
 
 export interface BlockContextEvents {
   activeElementChanged(ctx: BlockContext): void;
   focus(ctx: BlockContext): void;
   blur(ctx: BlockContext): void;
-  paste(action: IBPasteAction): void;
-  cut(action: IBCutAction): void;
+  paste(action: IBInsertAction): void;
+  cut(action: IBRemoveAction): void;
   moveInSlot(action: IBMoveInSlotAction): void;
   moveBetweenSlots(action: IBMoveBetweenSlotsAction): void;
   keydown(event: KeyboardEvent, ctx: BlockContext): void;
@@ -295,8 +302,8 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     // ----------------------------
     // event "paste"
 
-    const action = new IBPasteAction({
-      type: "paste",
+    const action = new IBInsertAction({
+      type: "insert",
       ctx: this,
       data,
       slot,
@@ -343,7 +350,7 @@ export class BlockContext extends EventEmitter<BlockContextEvents> {
     const block0index = blocks[0]!.index;
     const indexes = Array.from(blocks, x => x.index);
 
-    const action = new IBCutAction({
+    const action = new IBRemoveAction({
       type: "cut",
       blocks,
       indexes,

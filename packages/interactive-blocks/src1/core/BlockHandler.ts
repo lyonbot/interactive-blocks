@@ -1,9 +1,9 @@
 import type { BlockContext } from "./BlockContext";
 import type { SlotHandler, SlotInfo } from "./SlotHandler";
-import { getValueOf, ValueOrGetter } from "./ValueOrGetter";
-import { MultipleSelectType } from "./MultipleSelectType";
-import { BlockDOMEventHandlers, StyledEventLUT, GetDOMEventsOptions, EventKeyStyle, getStyledEventHandlersLUT, revokableFn } from "./domEvents";
-import { assign } from "./utils";
+import { getValueOf, ValueOrGetter } from "../ValueOrGetter";
+import { MultipleSelectType } from "../MultipleSelectType";
+import { BlockDOMEventHandlers, StyledEventLUT, GetDOMEventsOptions, EventKeyStyle, getStyledEventHandlersLUT, revokableFn } from "../domEvents";
+import { assign } from "../utils";
 
 export { BlockDOMEventHandlers };
 
