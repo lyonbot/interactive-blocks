@@ -1,31 +1,4 @@
-# Under the Hood
-
-## Terms
-
-- **Block**: an item that can be selected, copied, or moved. Its `data` shall be a JavaScript object.
-
-- **Slot**: a list containing various blocks. It also process block's inserting, moving and removing, based on the handlers you implemented. Its `data` shall be a JavaScript array.
-
-- **Context**: an InteractiveBlock context instance, which manages blocks, slots, browser events, focus status and so on.
-
-- **Element**: a HTMLElement that presents as a slot, or a block
-
-- **Ancestors**: parent elements, grand-parents and so on
-
-<br />
-
-## Ability Modules
-
-- **core**: select elements, focus, serialize and deserialize blocks
-- **navigate**: navigate and select blocks with keyboard
-- **clipboard**:  handle "copy" "paste" and "cut" events
-- **drag**: drag to move blocks
-
-### How modules get composited together
-
-We implements a simplified 
-
-<br />
+# DOM and Interaction
 
 ## Select and Focus
 
@@ -74,7 +47,7 @@ Beware that if a user double-click the same element, the `activeElement` will no
 
 <br />
 
-## Actions when Focused
+## When Focused
 
 When the context `hasFocus`, the browser's focus is on a block or slot element, which could not be a input. We add global `keydown`, `cut`, `copy`, `paste` event listeners to document's capture phase.
 

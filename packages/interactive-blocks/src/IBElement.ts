@@ -1,6 +1,7 @@
 import { IBContext } from "./IBContext";
 import { IBBlockEvents, IBBlockOptions, IBSlotEvents, IBSlotOptions } from "./definitions";
 import { IBElementBase } from "./IBElementBase";
+import { getValueOf } from "./utils/ValueOrGetter";
 
 export type IBElement = IBBlock | IBSlot;
 
@@ -13,11 +14,11 @@ export type IBElement = IBBlock | IBSlot;
  * the block `data` may contain lots of data fields, or just single value.
  */
 export class IBBlock extends IBElementBase<"block", IBBlockEvents, IBSlot> {
-  options: IBBlockOptions
+  options: IBBlockOptions;
 
   constructor(parent: IBContext | IBSlot, options: IBBlockOptions) {
     super("block", parent);
-    this.options = options
+    this.options = options;
     this.ctx.hooks.blockCreated.call(this);
     this.ctx.blocks.add(this);
   }
@@ -26,9 +27,18 @@ export class IBBlock extends IBElementBase<"block", IBBlockEvents, IBSlot> {
     return this.ctx.selectedBlocks.has(this);
   }
 
+  get index() {
+    return getValueOf(this.options.index, this);
+  }
+
+  get data() {
+    return getValueOf(this.options.data, this);
+  }
+
   dispose() {
     super.dispose();
     this.ctx.blocks.delete(this);
+    this.ctx.selectedBlocks.delete(this);
   }
 }
 
@@ -45,7 +55,7 @@ export class IBSlot extends IBElementBase<"slot", IBSlotEvents, IBBlock> {
 
   constructor(parent: IBContext | IBBlock, options: IBSlotOptions) {
     super("slot", parent);
-    this.options = options
+    this.options = options;
     this.ctx.hooks.slotCreated.call(this);
     this.ctx.slots.add(this);
   }
@@ -57,5 +67,6 @@ export class IBSlot extends IBElementBase<"slot", IBSlotEvents, IBBlock> {
   dispose() {
     super.dispose();
     this.ctx.slots.delete(this);
+    if (this.ctx.selectedSlot === this) this.ctx.selectedSlot = null;
   }
 }

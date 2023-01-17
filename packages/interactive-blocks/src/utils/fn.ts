@@ -42,3 +42,30 @@ export function wrapAsTrigger<T, U>(
     fn(input, lastValue);
   };
 }
+
+/**
+ * like `Promise.resolve().then()`
+ *
+ * but if `maybePromise` is not a Promise,
+ * the `next` will be executed immediately rather than next micro-task
+ */
+export function then<T, U>(maybePromise: T, next: (value: Awaited<T>) => U): U | Promise<U> {
+  if (maybePromise && typeof (maybePromise as any).then === "function") {
+    return (maybePromise as unknown as Promise<Awaited<T>>).then(next);
+  }
+
+  return (next(maybePromise as Awaited<T>));
+}
+
+export function retryWithin<T>(duration: number, fn: () => void | T, interval = 70): Promise<T | void> {
+  return new Promise(resolve => {
+    const deadline = Date.now() + duration;
+    const poll = () => {
+      const ans = fn();
+      if (ans !== undefined || Date.now() >= deadline) resolve(ans);
+      else setTimeout(poll, interval);
+    };
+
+    poll();
+  });
+}

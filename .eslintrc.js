@@ -22,6 +22,7 @@ module.exports = {
     "@typescript-eslint/semi": "error",
     "quote-props": ["error", "consistent-as-needed"],
     "@typescript-eslint/quotes": ["error", "double"],
+    "@typescript-eslint/no-this-alias": "off",
     "@typescript-eslint/no-explicit-any": "off",
     "@typescript-eslint/no-empty-interface": "off",
     "@typescript-eslint/no-non-null-assertion": "off",

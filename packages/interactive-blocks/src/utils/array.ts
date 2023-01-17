@@ -1,3 +1,5 @@
+import { Predicate } from "./iter";
+
 export type MaybeArray<T> = Array<T | null | undefined> | T | null | undefined;
 
 export function toArray<T>(value: MaybeArray<T>) {
@@ -41,4 +43,11 @@ export function moveItemsInArray(arr: any[], fromIndexes: number[], toIndex: num
 export function moveItemsBetweenArrays(fromArr: any[], fromIndexes: number[], toArr: any[], toIndex: number) {
   const items = removeItems(fromArr, fromIndexes);
   toArr.splice(toIndex, 0, ...items);
+}
+
+export function findLast<T>(arr: T[], predict: Predicate<T>): T | undefined {
+  for (let i = arr.length - 1; i>=0;i--) {
+    const element = arr[i]!;
+    if (predict(element, i)) return element;
+  }
 }

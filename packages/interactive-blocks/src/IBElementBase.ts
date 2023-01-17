@@ -2,13 +2,19 @@
 
 import { TypedEmitter } from "tiny-typed-emitter";
 import { IBContext } from "./IBContext";
+import { IBElement } from "./IBElement";
 import { emptyFn } from "./utils/fn";
 
 interface IBElementFundamental {
   options: any;
+
+  is: string;
   ctx: IBContext;
   depth: number;
+
+  parent: IBElementFundamental | null;
   children: Set<IBElementFundamental>;
+
   lastDOMElement: HTMLElement | null | undefined;
   dispose(): void;
 }
@@ -30,7 +36,7 @@ export abstract class IBElementBase<
   ParentType extends IBElementFundamental,
   ChildType extends IBElementFundamental = ParentType
 > extends TypedEmitter<Events> implements IBElementFundamental {
-  abstract options: any
+  abstract options: any;
 
   readonly is: TypeName;
   readonly ctx: IBContext;
@@ -74,6 +80,24 @@ export abstract class IBElementBase<
 
   get hasFocus() {
     return this.isSelected && this.ctx.hasFocus;
+  }
+
+  /**
+   * check if this is a descendant of `el`.
+   *
+   * - if `el === this` return true
+   * - if `el` is Nullish, return false
+   */
+  isDescendantOf(el: IBElement) {
+    if (!el) return false;
+    if (el.depth > this.depth) return false;
+
+    let ptr: IBElementFundamental | null = this;
+    while (ptr) {
+      if (ptr === el) return true;
+      ptr = ptr.parent;
+    }
+    return false;
   }
 
   // ----------------------------------------------------------------

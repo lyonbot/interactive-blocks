@@ -1,12 +1,16 @@
 import { TypedEmitter } from "tiny-typed-emitter";
 import { SyncHook, SyncBailHook } from "tapable";
 import { IBContextEvents, IBContextOptions } from "./definitions";
-import { MultipleSelectType } from "./utils/multiple-select";
+import { MultipleSelectType, normalizeMultipleSelectType } from "./utils/multiple-select";
 import { IBBlock, IBSlot } from "./IBElement";
 import { emitSelectionChangeEvents, startDiffSelection, updateSelection } from "./core-internals/selection";
 import { setupInteractionSelectFocus } from "./core-internals/interaction-select-focus";
 import { setupInteractionKeydown } from "./core-internals/interaction-keydown";
-import { MaybeArray } from "./utils/array";
+import { MaybeArray, toArray } from "./utils/array";
+import { head } from "./utils/iter";
+import { insertBlocks, removeBlocks } from "./core-internals/commands";
+import { isContextMultipleSelect } from "./core-internals/defaults";
+import { toBlockArray } from "./core-internals/relation";
 
 export class IBContext extends TypedEmitter<IBContextEvents> {
   static setupHook = new SyncHook<[IBContext, IBContextOptions]>(["context", "options"]);
@@ -79,7 +83,7 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
    */
   selectSlot(
     slot: IBSlot,
-    blockSelection: "ownerBlock" | "children" = "children"
+    selectChildren?: boolean
   ) {
     if (!slot) return false;
 
@@ -88,17 +92,70 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
     this.selectedSlot = slot;
     this.selectedBlocks.clear();
 
-    if (blockSelection === "children") {
+    if (selectChildren) {
       for (const block of slot.children) {
         this.selectedBlocks.add(block);
-        if (!(this.options.multipleSelect ?? true)) break;
+        if (!isContextMultipleSelect(this)) break;
       }
     }
 
-    if (blockSelection === "ownerBlock") {
+    if (!this.selectedBlocks.size) {
       if (slot.parent) this.selectedBlocks.add(slot.parent);
     }
 
     return emitSelectionChangeEvents(this, getChanges());
+  }
+
+  /**
+   * remove selected blocks
+   */
+  async remove() {
+    const slot = head(this.selectedBlocks)?.parent;
+    const indexes = Array.from(this.selectedBlocks, b => b.index);
+    await removeBlocks(slot, indexes);
+  }
+
+  /**
+   * insert data to the selected slot
+   */
+  async insert(blockData: any[] | any) {
+    await insertBlocks(this.selectedSlot, blockData);
+  }
+
+  /**
+   * navigate and select block, like pressing arrowUp or arrowDown key
+   */
+  navigateInSlot(direction: "up" | "down", multipleSelect?: MultipleSelectType) {
+    const slot = this.selectedSlot;
+    if (!slot) return;
+
+    const children = toBlockArray(slot.children);
+    const mul = normalizeMultipleSelectType(multipleSelect);
+
+    let block: IBBlock | undefined;
+    if (direction === "up") {
+      block = children[children.length - 1]?.block;
+      for (let index = 0; index < children.length; index++) {
+        const element = children[index]!;
+        if (element.isSelected) {
+          block = children[index - 1]?.block;
+          break;
+        }
+      }
+    }
+    if (direction === "down") {
+      block = children[0]?.block;
+      for (let index = children.length - 1; index >= 0; index--) {
+        const element = children[index]!;
+        if (element.isSelected) {
+          block = children[index + 1]?.block;
+          break;
+        }
+      }
+    }
+
+    // found the block
+
+    this.selectBlock(block, mul === "none" ? "none" : "ctrl", slot);
   }
 }

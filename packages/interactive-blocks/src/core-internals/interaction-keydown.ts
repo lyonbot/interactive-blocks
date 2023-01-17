@@ -45,7 +45,17 @@ export function setupInteractionKeydown(ctx: IBContext) {
     if (code === "ArrowRight") {
       const block = head(ctx.selectedBlocks);
       const slot = head(block?.children);
-      if (slot) ctx.selectSlot(slot, "children");
+      if (slot) ctx.selectSlot(slot, true);
+      return true;
+    }
+
+    if (code === "ArrowUp" || code === "ArrowDown") {
+      ctx.navigateInSlot(code === "ArrowUp" ? "up" : "down", ev);
+      return true;
+    }
+
+    if (code === "Delete" || code === "Backspace") {
+      ctx.remove();
       return true;
     }
   });

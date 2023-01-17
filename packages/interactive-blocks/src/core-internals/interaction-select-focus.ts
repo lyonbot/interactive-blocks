@@ -29,12 +29,29 @@ interface PointerDownTrace {
   trace: Array<{ block?: IBBlock; slot?: IBSlot; el: HTMLElement | null }>;
 }
 
+const preventDefault = (ev: Event) => {
+  ev.preventDefault();
+};
+
 export function setupInteractionSelectFocus(ctx: IBContext) {
   const globalPointerDownListener = (ev: PointerEvent) => {
+    const multipleSelectType = normalizeMultipleSelectType(ev);
+
     ctx._pointerDownTrace = {
-      multipleSelectType: normalizeMultipleSelectType(ev),
+      multipleSelectType,
       trace: [],
     };
+
+    if (multipleSelectType !== "none") {
+      document.addEventListener("contextmenu", preventDefault, true);
+      document.addEventListener("selectstart", preventDefault, true);
+
+      setTimeout(() => {
+        document.removeEventListener("contextmenu", preventDefault, true);
+        document.removeEventListener("selectstart", preventDefault, true);
+      }, 100);
+    }
+
     bindPhase2Listeners(ctx);
   };
 
@@ -92,13 +109,18 @@ function bindPhase2Listeners(ctx: IBContext) {
       if ("pointerId" in ev) multipleSelectType = normalizeMultipleSelectType(ev);
     }
 
-    const selectionChanges = updateSelection(ctx, newBlock, multipleSelectType, newSlot);
+    const selectionChanges = updateSelection(
+      ctx,
+      newBlock,
+      multipleSelectType,
+      newSlot || null     // if no slot selected, clear "ctx.selectedSlot"
+    );
 
     // ----------------------------------------------------------------
     // update context's focus status -- `hasFocus`
 
     const wantedActiveElement = trace?.trace[0]?.el;
-    const actualActiveElement = !('pointerId' in ev) ? ev.relatedTarget : document.activeElement
+    const actualActiveElement = !("pointerId" in ev) ? ev.relatedTarget : document.activeElement;
     const hasFocus = !!wantedActiveElement && (actualActiveElement === wantedActiveElement);
 
     const focusStatusChanged = ctx.hasFocus !== hasFocus;
