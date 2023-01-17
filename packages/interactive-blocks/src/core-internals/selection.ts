@@ -34,6 +34,11 @@ export function startDiffSelection(ctx: IBContext) {
   return getChanges;
 }
 
+/**
+ * internal method: compute new selection and update `ctx`
+ *
+ * Note: this function will not emit events -- see {@link emitSelectionChangeEvents}
+ */
 export function updateSelection(
   ctx: IBContext,
   deltaBlocks: MaybeArray<IBBlock>,
@@ -184,14 +189,36 @@ function normalizeSelection(
 }
 
 export function emitSelectionChangeEvents(ctx: IBContext, changes: null | {
-  slots: Set<IBSlot>;
-  blocks: Set<IBBlock>;
+  slots?: Iterable<IBSlot | null | undefined>;
+  blocks?: Iterable<IBBlock | null | undefined>;
 }) {
-  if (!changes) return false;
+  if (!changes) return null;
 
-  changes.blocks.forEach(block => block.emit("statusChange", block));
-  changes.slots.forEach(slot => slot.emit("statusChange", slot));
-  ctx.emit("selectionChange", ctx, changes);
+  const blocks = new Set<IBBlock>();
+  const slots = new Set<IBSlot>();
 
-  return true;
+  if (changes.blocks) {
+    for (const block of changes.blocks) {
+      if (!block) continue;
+
+      blocks.add(block);
+      block.emit("statusChange", block);
+    }
+  }
+
+  if (changes.slots) {
+    for (const slot of changes.slots) {
+      if (!slot) continue;
+
+      slots.add(slot);
+      slot.emit("statusChange", slot);
+    }
+  }
+
+  if (blocks.size || slots.size) {
+    ctx.emit("selectionChange", ctx, { blocks, slots });
+    return { blocks, slots };
+  }
+
+  return null;
 }

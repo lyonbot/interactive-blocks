@@ -75,7 +75,7 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
     clearPrevSelection?: boolean
   ): boolean {
     const changes = updateSelection(this, block, multipleSelect, preferredSlot, clearPrevSelection);
-    return emitSelectionChangeEvents(this, changes);
+    return !!emitSelectionChangeEvents(this, changes);
   }
 
   /**
@@ -103,7 +103,7 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
       if (slot.parent) this.selectedBlocks.add(slot.parent);
     }
 
-    return emitSelectionChangeEvents(this, getChanges());
+    return !!emitSelectionChangeEvents(this, getChanges());
   }
 
   /**
@@ -130,7 +130,17 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
     if (!slot) return;
 
     const children = toBlockArray(slot.children);
-    const mul = normalizeMultipleSelectType(multipleSelect);
+    if (!children.length) {
+      const ownerBlock = slot.parent;
+      if (!ownerBlock) return;
+
+      this.selectedSlot = ownerBlock.parent || null;
+      emitSelectionChangeEvents(this, { slots: [slot, this.selectedSlot] });
+      return;
+    }
+
+    // ----------------------------------------------------------------
+    // find the block to be selected
 
     let block: IBBlock | undefined;
     if (direction === "up") {
@@ -154,8 +164,10 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
       }
     }
 
-    // found the block
+    // ----------------------------------------------------------------
+    // found the block! update selection
 
+    const mul = normalizeMultipleSelectType(multipleSelect);
     this.selectBlock(block, mul === "none" ? "none" : "ctrl", slot);
   }
 }
