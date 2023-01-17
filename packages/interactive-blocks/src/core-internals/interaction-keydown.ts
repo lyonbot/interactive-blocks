@@ -58,5 +58,10 @@ export function setupInteractionKeydown(ctx: IBContext) {
       ctx.remove();
       return true;
     }
+
+    if (code === "KeyA" && (ev.ctrlKey || ev.metaKey)) {
+      if (ctx.selectedSlot) ctx.selectSlot(ctx.selectedSlot, true);
+      return true;
+    }
   });
 }
