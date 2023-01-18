@@ -48,7 +48,7 @@ export interface IBContextEvents {
 
 export interface IBBlockOptions {
   index: ValueOrGetter<number, IBBlock>;
-  data: ValueOrGetter<number, IBBlock>;
+  data: ValueOrGetter<object, IBBlock>;
 
   // ... can be extended
 }
