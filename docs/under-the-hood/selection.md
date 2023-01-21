@@ -12,11 +12,11 @@
 
 ### Rules
 
-1. All selected blocks must under the same slot.
+1. All selected blocks must under the same slot, and the selected slot must be `block.parent` of each block.
 
-2. If one block doesn't meet this rule, we find the nearest ancestor that satisfies, and select it rather
+2. If one block doesn't meet this rule, we find the nearest ancestor block that satisfies, and select it rather
 
-3. The `ctx.selectedSlot` must be to the parent of each selected block.
+To meet the rules, we can lift all selected blocks until they get same `depth`, then continue lifting until their `parent` not vary anymore. (Lift = select parent block)
 
 ### Types
 
