@@ -23,6 +23,13 @@ export interface IBContextOptions {
    */
   serializer?: BlockSerializer;
 
+  /**
+   * the root of this context. once setup, you can't change this option
+   *
+   * by default `window.document`
+   */
+  domRoot?: Document | ShadowRoot;
+
   // ... can be extended
 }
 

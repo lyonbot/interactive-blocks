@@ -15,7 +15,7 @@ interface IBElementFundamental {
   parent: IBElementFundamental | null;
   children: Set<IBElementFundamental>;
 
-  lastDOMElement: HTMLElement | null | undefined;
+  domElement: HTMLElement | null | undefined;
   dispose(): void;
 }
 
@@ -72,7 +72,7 @@ export abstract class IBElementBase<
 
     // @ts-ignore
     this.emit("dispose", this);
-    this.lastDOMElement = null;
+    this.domElement = null;
     this.parent?.children.delete(this);
   }
 
@@ -103,7 +103,27 @@ export abstract class IBElementBase<
   // ----------------------------------------------------------------
   // UI Related
 
-  lastDOMElement: HTMLElement | null | undefined; // managed by <./core-internals/interaction-select-focus.ts>
-  handlePointerDown!: (ev: PointerEvent) => void; // injected by <./core-internals/interaction-select-focus.ts>
+  #lastDOM: HTMLElement | null = null;
+  set domElement(newDOM: HTMLElement | null | undefined) {
+    newDOM = newDOM instanceof HTMLElement ? newDOM : null;
 
+    const lastDOM = this.#lastDOM;
+    if (newDOM === lastDOM) return;
+
+    if (lastDOM) {
+      const ctxLastPtr = this.ctx.dom2el.get(lastDOM);
+      if (ctxLastPtr === this as any) this.ctx.dom2el.delete(lastDOM);
+    }
+
+    if (newDOM) {
+      this.ctx.dom2el.set(newDOM, this as any);
+    }
+
+    this.#lastDOM = newDOM;
+  }
+  get domElement() {
+    let ans = this.#lastDOM;
+    if (ans && !ans.parentNode) this.domElement = (ans = null);
+    return ans;
+  }
 }

@@ -2,7 +2,7 @@ import { TypedEmitter } from "tiny-typed-emitter";
 import { SyncHook, SyncBailHook } from "tapable";
 import { IBContextEvents, IBContextOptions } from "./definitions";
 import { MultipleSelectType, normalizeMultipleSelectType } from "./utils/multiple-select";
-import { IBBlock, IBSlot } from "./IBElement";
+import { IBBlock, IBElement, IBSlot } from "./IBElement";
 import { emitSelectionChangeEvents, startDiffSelection, updateSelection } from "./core-internals/selection";
 import { setupInteractionSelectFocus } from "./core-internals/interaction-select-focus";
 import { setupInteractionKeydown } from "./core-internals/interaction-keydown";
@@ -11,11 +11,13 @@ import { head } from "./utils/iter";
 import { insertBlocks, removeBlocks } from "./core-internals/commands";
 import { isContextMultipleSelect } from "./core-internals/defaults";
 import { toBlockArray } from "./core-internals/relation";
+import { isFocusable } from "./utils/dom";
 
 export class IBContext extends TypedEmitter<IBContextEvents> {
   static setupHook = new SyncHook<[IBContext, IBContextOptions]>(["context", "options"]);
 
   options: IBContextOptions;
+  domRoot: Document | ShadowRoot;
   hooks = {
     dispose: new SyncHook<[IBContext]>(["context"]),
 
@@ -40,6 +42,7 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
     super();
 
     this.options = options;
+    this.domRoot = options.domRoot || document;
     IBContext.setupHook.call(this, this.options);
 
     // setup core interactions, after all plugins
@@ -62,6 +65,8 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
   hasFocus = false;
   selectedBlocks: Set<IBBlock> = new Set<IBBlock>();
   selectedSlot: IBSlot | null = null;
+
+  dom2el = new WeakMap<HTMLElement, IBElement>();
 
   /**
    * update selection and emit "statusChange" event on both new/old slots/blocks
@@ -169,5 +174,12 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
 
     const mul = normalizeMultipleSelectType(multipleSelect);
     this.selectBlock(block, mul === "none" ? "none" : "ctrl", slot);
+
+    // ---------------------------------------------------------------
+    // UX secret: move focus to the block element, potentially scroll the window
+
+    if (block && isFocusable(block.domElement)) {
+      block.domElement.focus();
+    }
   }
 }

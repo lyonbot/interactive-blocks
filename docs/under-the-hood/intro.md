@@ -8,7 +8,7 @@
 
 - **Context**: an InteractiveBlocks context instance, which manages blocks, slots, browser events, focus status and so on.
 
-- **Element**: a slot, or a block. This is an abstract concept, not DOMElement.
+- **Element**: a slot, or a block. This is an abstract concept. An element must have a corresponding `domElement` to display on the browser.
 
 - **Ancestors**: parent elements, grand-parents and so on
 
