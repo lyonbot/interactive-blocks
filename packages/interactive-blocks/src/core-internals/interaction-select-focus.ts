@@ -1,47 +1,42 @@
-import { IBBlock, IBSlot } from "../IBElement";
+import { IBElement } from "../IBElement";
 import { IBContext } from "../IBContext";
-import { NormalizedMultipleSelectType, normalizeMultipleSelectType } from "../utils/multiple-select";
-import { isFocusable } from "../utils/dom";
+import { normalizeMultipleSelectType } from "../utils/multiple-select";
 import { simpleSyncHook } from "../utils/fn";
-import { warn } from "../utils/warn";
 import { emitSelectionChangeEvents, updateSelection } from "./selection";
-import { enableStylePatch } from "./style-patch";
+import { applyStylePatchTo } from "./style-patch";
 
 /**
- * see under-the-hood.md - "Select and Focus"
+ * see <docs/under-the-hood/dom-and-interaction.md>
  *
  * this file also manages "hooks.focus"
  */
 
 const pluginName = "interaction-select-focus";
 
-declare module "../IBContext" {
-  export interface IBContext {
-    _pointerDownTrace?: PointerDownTrace;
-    _invokeBlurCallbacks?: () => void;
-  }
-}
-
-interface PointerDownTrace {
-  multipleSelectType: NormalizedMultipleSelectType;
-
-  /** in reversed order: [first bubbled] -> [last bubbled] */
-  trace: Array<{ block?: IBBlock; slot?: IBSlot; el: HTMLElement | null }>;
-}
-
-const preventDefault = (ev: Event) => {
-  ev.preventDefault();
-};
-
+const preventDefault = (ev: Event) => { ev.preventDefault(); };
 export function setupInteractionSelectFocus(ctx: IBContext) {
-  const globalPointerDownListener = (ev: PointerEvent) => {
-    const multipleSelectType = normalizeMultipleSelectType(ev);
+  const domRoot = ctx.domRoot;
 
-    ctx._pointerDownTrace = {
+  let clearCtxFocusedHandlers: (() => void) | undefined;
+
+  const globalPointerDown = (ev: PointerEvent) => {
+    let target: IBElement | undefined;
+    ev.composedPath().some(it => !!(target = ctx.dom2el.get(it as HTMLElement)));
+
+    const block = target?.is === "block" ? target : target?.parent;
+    const slot = target?.is === "slot" ? target : target?.parent;
+    const multipleSelectType = !target ? "none" : normalizeMultipleSelectType(ev);
+
+    const selectionChanges = updateSelection(
+      ctx,
+      block,
       multipleSelectType,
-      trace: [],
-    };
+      slot || null     // if no slot selected, clear "ctx.selectedSlot"
+    );
 
+    emitSelectionChangeEvents(ctx, selectionChanges);
+
+    // UX secret: disable context menu and selection, if modifier key pressed
     if (multipleSelectType !== "none") {
       document.addEventListener("contextmenu", preventDefault, true);
       document.addEventListener("selectstart", preventDefault, true);
@@ -51,120 +46,56 @@ export function setupInteractionSelectFocus(ctx: IBContext) {
         document.removeEventListener("selectstart", preventDefault, true);
       }, 100);
     }
-
-    bindPhase2Listeners(ctx);
   };
 
-  document.addEventListener("pointerdown", globalPointerDownListener, true);
+  const globalFocusOut = (ev: FocusEvent) => {
+    if (ctx.hasFocus && !ctx.dom2el.has(ev.relatedTarget as any)) {
+      // focus shifted outside of this context
+      ctx.hasFocus = false;
+      clearCtxFocusedHandlers?.();
+      emitSelectionChangeEvents(ctx, {
+        slots: [ctx.selectedSlot],
+        blocks: ctx.selectedBlocks,
+      });
+      ctx.emit("blur", ctx);
+    }
+  };
+
+  const globalFocusIn = (ev: FocusEvent) => {
+    const isTargetKnownDOMElement = ctx.dom2el.has(ev.target as any);
+    if (!ctx.hasFocus && isTargetKnownDOMElement) {
+      // focus get into this context
+      ctx.hasFocus = true;
+      setupWhenCtxFocus();
+      emitSelectionChangeEvents(ctx, {
+        slots: [ctx.selectedSlot],
+        blocks: ctx.selectedBlocks,
+      });
+      ctx.emit("focus", ctx);
+    }
+
+    if (isTargetKnownDOMElement) applyStylePatchTo(ev.target as HTMLElement);
+  };
+
+  domRoot.addEventListener("pointerdown", globalPointerDown as EventListener, true);
+  domRoot.addEventListener("focusout", globalFocusOut as EventListener, true);
+  domRoot.addEventListener("focusin", globalFocusIn as EventListener, true);
   ctx.hooks.dispose.tap(pluginName, () => {
-    ctx._invokeBlurCallbacks?.();
-    document.removeEventListener("pointerdown", globalPointerDownListener, true);
+    clearCtxFocusedHandlers?.();
+    domRoot.removeEventListener("pointerdown", globalPointerDown as EventListener, true);
+    domRoot.removeEventListener("focusout", globalFocusOut as EventListener, true);
+    domRoot.removeEventListener("focusin", globalFocusIn as EventListener, true);
   });
 
-  ctx.hooks.slotCreated.tap(pluginName, (slot) => { slot.handlePointerDown = getElementPointerDownHandler(ctx, { slot }); });
-  ctx.hooks.blockCreated.tap(pluginName, (block) => { block.handlePointerDown = getElementPointerDownHandler(ctx, { block }); });
-}
-
-function getElementPointerDownHandler(ctx: IBContext, target: { block?: IBBlock; slot?: IBSlot }) {
-  return (ev: PointerEvent) => {
-    const trace = ctx._pointerDownTrace;
-    if (!trace) return; // incorrect time
-
-    const isBubbling = ev.eventPhase === Event.BUBBLING_PHASE;
-
-    let el = ev.currentTarget as HTMLElement | null;
-    if (el && !isFocusable(el)) {
-      warn(el, "missing tabIndex on element", el);
-      el = null;
-    }
-
-    trace.trace[isBubbling ? "push" : "unshift"]({
-      el,
-      ...target,
+  /**
+   * call this only when `ctx.hasFocus` changes to `true`
+   */
+  function setupWhenCtxFocus() {
+    const dispose = simpleSyncHook();
+    dispose.tap(() => {
+      clearCtxFocusedHandlers = undefined;
     });
-
-    (target.block || target.slot)!.lastDOMElement = el;
-  };
-}
-
-function bindPhase2Listeners(ctx: IBContext) {
-  const listener = (ev: FocusEvent | PointerEvent) => {
-    const trace = ctx._pointerDownTrace;
-
-    document.removeEventListener("blur", listener, true);
-    document.removeEventListener("pointerup", listener, true);
-    ctx._pointerDownTrace = undefined;
-
-    // ----------------------------------------------------------------
-    // update context's `activeBlocks` and `activeSlot`
-
-    let newBlock: IBBlock | undefined;
-    let newSlot: IBSlot | undefined;
-    let multipleSelectType: NormalizedMultipleSelectType = trace?.multipleSelectType || "none";
-
-    if (trace) {
-      // click happens inside this context
-      newBlock = trace.trace.find(x => x.block)?.block;
-      newSlot = trace.trace.find(x => x.slot)?.slot;
-      if ("pointerId" in ev) multipleSelectType = normalizeMultipleSelectType(ev);
-    }
-
-    const selectionChanges = updateSelection(
-      ctx,
-      newBlock,
-      multipleSelectType,
-      newSlot || null     // if no slot selected, clear "ctx.selectedSlot"
-    );
-
-    // ----------------------------------------------------------------
-    // update context's focus status -- `hasFocus`
-
-    const wantedActiveElement = trace?.trace[0]?.el;
-    const actualActiveElement = !("pointerId" in ev) ? ev.relatedTarget : document.activeElement;
-    const hasFocus = !!wantedActiveElement && (actualActiveElement === wantedActiveElement);
-
-    const focusStatusChanged = ctx.hasFocus !== hasFocus;
-
-    ctx.hasFocus = hasFocus;
-
-    // ----------------------------------------------------------------
-    // internal: call hooks
-
-    if (focusStatusChanged) {
-      if (hasFocus) {
-        const dispose = simpleSyncHook();
-        dispose.tap(() => { ctx._invokeBlurCallbacks = undefined; });
-        ctx.hooks.focus.call(ctx, dispose.tap);
-        ctx._invokeBlurCallbacks = dispose.call;
-      } else {
-        ctx._invokeBlurCallbacks?.();
-      }
-    }
-
-    // ----------------------------------------------------------------
-    // internal: style patch to remove Chrome outline
-
-    enableStylePatch(hasFocus ? wantedActiveElement! : null);
-
-    // ----------------------------------------------------------------
-    // emit events
-
-    if (focusStatusChanged) {
-      // if focus status changed, all new/old slots/blocks must be notified
-      const blocks = new Set([...ctx.selectedBlocks, ...selectionChanges?.blocks || []]);
-      const slots = new Set([ctx.selectedSlot, ...selectionChanges?.slots || []]);
-
-      blocks.forEach(block => block.emit("statusChange", block));
-      slots.forEach(slot => slot?.emit("statusChange", slot));
-      ctx.emit(hasFocus ? "focus" : "blur", ctx);
-    } else {
-      // otherwise, maybe selection changed
-      emitSelectionChangeEvents(ctx, selectionChanges);
-    }
-
-    if (selectionChanges) ctx.emit("selectionChange", ctx, selectionChanges);
-  };
-
-  document.addEventListener("blur", listener, true);
-  document.addEventListener("pointerup", listener, true);
+    ctx.hooks.focus.call(ctx, dispose.tap);
+    clearCtxFocusedHandlers = dispose.call;
+  }
 }

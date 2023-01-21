@@ -12,16 +12,16 @@ const actualEnableStylePatch = wrapAsTrigger((root: ReturnType<typeof getRootOfN
   if (!focusAnchorStylePatch.parentNode?.isSameNode(newRoot)) newRoot.insertBefore(focusAnchorStylePatch, newRoot.firstElementChild);
 });
 
-export const enableStylePatch = (node: HTMLElement | null) => {
+/**
+ * browser's default ":focus" has a weird outline
+ *
+ * we inject a `<style>` and add `[data-xxxx]` to the DOM Element to remove the style
+ */
+export const applyStylePatchTo = (node: HTMLElement | null) => {
   actualEnableStylePatch(getRootOfNode(node));
 
   if (node) {
-    const remove = (ev: FocusEvent) => {
-      if (ev.relatedTarget === null) {
-        // browser tab temporarily lost focus
-        return;
-      }
-
+    const remove = () => {
       node.removeAttribute(focusAnchorDataMark);
       node.removeEventListener("blur", remove);
     };

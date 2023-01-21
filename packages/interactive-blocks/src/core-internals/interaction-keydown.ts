@@ -10,6 +10,7 @@ import { head } from "../utils/iter";
 const pluginName = "interaction-keydown";
 
 export function setupInteractionKeydown(ctx: IBContext) {
+  const document = ctx.domRoot;
 
   // ----------------------------------------------------------------
   // "hooks.keydown"
@@ -26,8 +27,8 @@ export function setupInteractionKeydown(ctx: IBContext) {
   // -- handled by `hooks.focus` in <./interaction-select-focus.ts>
 
   ctx.hooks.focus.tap(pluginName, (_, onBlur) => {
-    document.addEventListener("keydown", handleGlobalKeyDown, true);
-    onBlur(() => { document.removeEventListener("keydown", handleGlobalKeyDown, true); });
+    document.addEventListener("keydown", handleGlobalKeyDown as EventListener, true);
+    onBlur(() => { document.removeEventListener("keydown", handleGlobalKeyDown as EventListener, true); });
   });
 
   // ----------------------------------------------------------------
