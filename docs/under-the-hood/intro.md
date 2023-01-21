@@ -6,9 +6,9 @@
 
 - **Slot**: a list containing various blocks. It also process block's inserting, moving and removing, based on the handlers you implemented. Its `data` shall be a JavaScript array.
 
-- **Context**: an InteractiveBlock context instance, which manages blocks, slots, browser events, focus status and so on.
+- **Context**: an InteractiveBlocks context instance, which manages blocks, slots, browser events, focus status and so on.
 
-- **Element**: a HTMLElement that presents as a slot, or a block
+- **Element**: a slot, or a block. This is an abstract concept, not DOMElement.
 
 - **Ancestors**: parent elements, grand-parents and so on
 
