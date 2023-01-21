@@ -10,7 +10,8 @@
     "useDefineForClassFields": true,
     "composite": true,
     "stripInternal": true,
-    "declarationDir": "types"
+    "declarationDir": "types",
+    "emitDeclarationOnly": true
   },
   "include": ["./src/**/*"],
   "exclude": ["node_modules"]

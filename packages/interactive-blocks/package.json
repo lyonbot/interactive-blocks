@@ -7,18 +7,21 @@
     "registry": "https://registry.npmjs.org"
   },
   "source": "./src/index.ts",
-  "main": "./dist/index.js",
+  "main": "./dist/index.umd.js",
   "unpkg": "./dist/index.umd.js",
-  "module": "./dist/index.module.js",
-  "exports": "./dist/index.modern.js",
+  "module": "./dist/index.mjs",
   "types": "./index.d.ts",
   "amdName": "InteractiveBlocks",
   "scripts": {
     "clean": "rimraf dist types tsconfig.tsbuildinfo",
     "prepack": "run-s clean build",
-    "build": "microbundle",
+    "build": "run-p build:*",
+    "build:lib": "vite build",
+    "build:dts": "tsc -b .",
     "prepare-dev": "[ -d dist ] || npm run build",
-    "dev": "microbundle watch --compress false"
+    "dev": "run-p -l dev:*",
+    "dev:lib": "vite build --watch",
+    "dev:dts": "tsc -b . -w"
   },
   "repository": {
     "type": "git",
@@ -50,10 +53,10 @@
   },
   "homepage": "https://github.com/lyonbot/interactive-blocks#readme",
   "devDependencies": {
-    "microbundle": "^0.15.1",
     "npm-run-all": "^4.1.5",
     "rimraf": "^3.0.2",
-    "typescript": "^4.9.4"
+    "typescript": "^4.9.4",
+    "vite": "^4.0.4"
   },
   "dependencies": {
     "events": "^3.3.0",
