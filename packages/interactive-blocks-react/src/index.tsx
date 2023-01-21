@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useRef, useContext, useMemo, useEffect, useImperativeHandle } from "react";
-import { IBContext, IBSlot, IBBlock, IBContextOptions, IBElement } from "@lyonbot/interactive-blocks";
+import { IBContext, IBSlot, IBBlock, IBContextOptions, IBElement, IBSlotOptions, IBBlockOptions } from "@lyonbot/interactive-blocks";
 
 // IB = interactive-blocks
 
@@ -31,18 +31,18 @@ interface RootProps {
 
   /** other context options */
   options?: IBContextOptions;
-  onMount?(ctx: IBContext): void;
-  onUnmount?(ctx: IBContext): void;
+  onSetup?(ctx: IBContext): void;
+  onDispose?(ctx: IBContext): void;
 }
 
-export const ReactIBRoot = React.memo((props: React.PropsWithChildren<RootProps>) => {
+export const IBContextWrapper = React.forwardRef<IBContext, React.PropsWithChildren<RootProps>>((props, ref) => {
   const lastProps = useLatestRef(props);
   const blockContext = useMemo(() => new IBContext(props.options || {}), []);
 
   useEffect(() => {
-    lastProps.current?.onMount?.(blockContext);
+    lastProps.current?.onSetup?.(blockContext);
     return () => {
-      lastProps.current?.onUnmount?.(blockContext);
+      lastProps.current?.onDispose?.(blockContext);
       blockContext.dispose();
     };
   }, []);
@@ -53,6 +53,8 @@ export const ReactIBRoot = React.memo((props: React.PropsWithChildren<RootProps>
       ...props.options,
     };
   }, [props.options, props.multipleSelect, blockContext]);
+
+  useImperativeHandle(ref, () => blockContext, []);
 
   return (
     <ReactIBContext.Provider value={blockContext}>
@@ -65,15 +67,47 @@ export const ReactIBRoot = React.memo((props: React.PropsWithChildren<RootProps>
   );
 });
 
-type ExtendedOptions<T, RefType> = {
-  ref?: React.MutableRefObject<RefType>;
+type ExtendedOptions<T> = {
+  /**
+   * The ref to current IBSlot / IBBlock instance.
+   *
+   * With the instance you can add more listeners, and call methods of it.
+   *
+   * @see domRef - if you want to get the DOM Element
+   */
+  ref?: React.MutableRefObject<T>;
+
+  /**
+   * The wrapper DOM element. Basically is a `<div>` element
+   *
+   * @example
+   *     const divElement = React.useRef()
+   *     useEffect(() => {
+   *       console.log('divElement is ', divElement.current)
+   *     }, [])
+   *
+   *     return <IBBlockWrapper domRef={divElement} {...otherProps}>...</IBBlockWrapper>
+   */
   domRef?: React.MutableRefObject<any>;
+
+  /**
+   * The tag name of the DOM element.
+   *
+   * @default "div"
+   */
   tagName?: React.ComponentType<any> | keyof JSX.IntrinsicElements;
+
+  /**
+   * Fires when `hasFocus` or `isSelected` changed.
+   *
+   * You shall update the style (eg. update className) when this fires.
+   */
   onStatusChange?(element: T): void;
+
   onSetup?(element: T): void;
   onDispose?(element: T): void;
 };
-const keysOfExtendedOptions: Record<keyof ExtendedOptions<any, any>, any> = {
+const keysOfExtendedOptions: Record<keyof ExtendedOptions<any>, any> = {
   ref: true,
   domRef: true,
   tagName: true,
@@ -82,24 +116,19 @@ const keysOfExtendedOptions: Record<keyof ExtendedOptions<any, any>, any> = {
   onDispose: true,
 };
 
-function elementFactory<SELF extends IBElement, ExposedHandle>(factoryOpts: {
-  clazz: { new(parent: any, options: any): SELF };
+function elementFactory<SELF extends IBElement>(factoryOpts: {
+  ctor: { new(parent: any, options: any): SELF };
   reactContext: React.Context<SELF | null>;
   displayName: string;
   optionsKeys: Record<keyof SELF["options"], any>;
   useParent: (() => SELF["parent"]);
-  setup(element: SELF, getDOM: () => (HTMLElement | undefined)): {
-    expose: ExposedHandle;
-    domProps: React.HTMLAttributes<HTMLElement>;
-    domEvents: Record<string, (...args: any[]) => any>;
-  };
 }) {
   type ElementOptions = SELF["options"];
 
   /**
    * values extracted from props that not belongs to HTMLElement
    */
-  type BaseProps = ElementOptions & ExtendedOptions<SELF, ExposedHandle>;
+  type BaseProps = ElementOptions & ExtendedOptions<SELF>;
 
   /**
    * Factory-returned Components accept optional `tagName`
@@ -112,7 +141,7 @@ function elementFactory<SELF extends IBElement, ExposedHandle>(factoryOpts: {
    */
   const ReactContextProvider = factoryOpts.reactContext.Provider;
 
-  const wrapper = React.forwardRef<ExposedHandle, BaseProps & { [k: string]: any }>((_props, forwardedRef) => {
+  const wrapper = React.forwardRef<SELF, BaseProps & { [k: string]: any }>((_props, forwardedRef) => {
     const blockContext = useIBContext();
     const parent = factoryOpts.useParent(); // could be null if this slot is directly under Root
     const latestProps = useLatestRef(_props);
@@ -136,15 +165,15 @@ function elementFactory<SELF extends IBElement, ExposedHandle>(factoryOpts: {
     // ----------------------------------------------------------------
     // setup IBElement (aka. IBSlot or IBBlock)
 
-    const fallbackDOMRef = useRef<HTMLElement>(); // in case that user didn't provide `domRef`
-    const domRef = options.domRef || fallbackDOMRef;
-    const getDOM = React.useCallback(() => (latestProps.current.domRef as BaseProps["domRef"] || fallbackDOMRef).current, []);
-
-    const element = useMemo(() => new factoryOpts.clazz(parent || blockContext, latestProps.current), []);
+    const element = useMemo(() => new factoryOpts.ctor(parent || blockContext, latestProps.current), []);
     element.options = options; // sync "options" in each render
 
-    const setup = useMemo(() => factoryOpts.setup(element, getDOM), []);
-    useImperativeHandle(forwardedRef, () => setup.expose, []);
+    useImperativeHandle(forwardedRef, () => element, []);
+
+    const privateDOMRef = useRef<HTMLElement>(); // in case that user didn't provide `domRef`
+    const getDOM = React.useCallback(() => privateDOMRef.current, []);
+    useImperativeHandle(options.domRef, () => privateDOMRef.current);  // no dep list, make each render update it
+    useEffect(() => { element.domElement = getDOM(); });  // always make `domElement` up-to-date on each rendering
 
     // when component unmount, dispose the slotHandler
     useEffect(() => {
@@ -160,32 +189,20 @@ function elementFactory<SELF extends IBElement, ExposedHandle>(factoryOpts: {
     // ----------------------------------------------------------------
     // DOM Element
 
-    Object.keys(setup.domEvents).forEach(on => {
-      const handler = setup.domEvents[on]!;
-      const userHandler = domProps[on];
-
-      if (!userHandler) return handler;
-      return (...args: any[]) => {
-        handler(...args);
-        return userHandler(...args);
-      };
-    });
+    if (!domProps["tabIndex"]) domProps.tabIndex = -1;
 
     const Tag = options.tagName || "div";
     return <ReactContextProvider value={element}>
-      <Tag {...setup.domProps} {...domProps} ref={domRef}>{_props.children}</Tag>
+      <Tag {...domProps} ref={privateDOMRef}>{_props.children}</Tag>
     </ReactContextProvider>;
   });
   wrapper.displayName = factoryOpts.displayName;
 
-  return wrapper as unknown as ElementWrapper & {
-    [basePropsType]: BaseProps;  // not actual exists. only for TypeScript
-    [handleType]: ExposedHandle; // not actual exists. only for TypeScript
-  };
+  return wrapper as unknown as ElementWrapper;
 }
 
 export const IBSlotWrapper = elementFactory({
-  clazz: IBSlot,
+  ctor: IBSlot,
   reactContext: ReactIBSlot,
   displayName: "IBSlot",
   optionsKeys: {
@@ -196,33 +213,10 @@ export const IBSlotWrapper = elementFactory({
     serializer: true,
   },
   useParent: useParentBlock,
-  setup(slot, getDOM) {
-    const blockContext = slot.ctx;
-    const ownerBlock = slot.parent;
-
-    const domEvents = {
-      onPointerDown: slot.handlePointerDown as unknown as React.PointerEventHandler,
-    };
-    const domProps = { tabIndex: -1, ...domEvents };
-
-    return {
-      expose: {
-        blockContext,
-        ownerBlock,
-        slot,
-        domEvents,
-        domProps,
-        getDOM,
-        get $el() { return getDOM(); }, // Vue style API
-      },
-      domProps,
-      domEvents,
-    };
-  },
 });
 
 export const IBBlockWrapper = elementFactory({
-  clazz: IBBlock,
+  ctor: IBBlock,
   reactContext: ReactIBBlock,
   displayName: "IBBlock",
   optionsKeys: {
@@ -230,36 +224,7 @@ export const IBBlockWrapper = elementFactory({
     index: true,
   },
   useParent: useParentSlot,
-  setup(block, getDOM) {
-    const blockContext = block.ctx;
-    const ownerSlot = block.parent;
-
-    const domEvents = {
-      onPointerDown: block.handlePointerDown as unknown as React.PointerEventHandler,
-    };
-    const domProps = { tabIndex: -1, ...domEvents };
-
-    return {
-      expose: {
-        blockContext,
-        ownerSlot,
-        block,
-        domEvents,
-        domProps,
-        getDOM,
-        get $el() { return getDOM(); }, // Vue style API
-      },
-      domProps,
-      domEvents,
-    };
-  },
 });
 
-const basePropsType = Symbol();
-const handleType = Symbol();
-
-export type IBSlotWrapperProps = typeof IBSlotWrapper[typeof basePropsType];
-export type IBSlotWrapperHandle = typeof IBSlotWrapper[typeof handleType];
-
-export type IBBlockWrapperProps = typeof IBBlockWrapper[typeof basePropsType];
-export type IBBlockWrapperHandle = typeof IBBlockWrapper[typeof handleType];
+export type IBSlotWrapperProps = IBSlotOptions & ExtendedOptions<IBSlot>;
+export type IBBlockWrapperProps = IBBlockOptions & ExtendedOptions<IBBlock>;
