@@ -8,9 +8,16 @@ import { IBInsertAction, IBMoveAction, IBRemoveAction, IBTransferIntoAction } fr
 
 export interface IBContextOptions {
   /**
-   * default is true
+   * @default true
    */
   multipleSelect?: boolean;
+
+  /**
+   * you can set to `true` to retain selection, when user click outside this context (aka. not slot or block get clicked)
+   *
+   * @default false
+   */
+  retainSelection?: boolean;
 
   /**
    * when copy and paste blocks, the block data will be converted to/from string

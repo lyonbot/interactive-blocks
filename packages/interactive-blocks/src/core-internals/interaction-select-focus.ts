@@ -13,19 +13,45 @@ import { applyStylePatchTo } from "./style-patch";
 
 const pluginName = "interaction-select-focus";
 
-const preventDefault = (ev: Event) => { ev.preventDefault(); };
 export function setupInteractionSelectFocus(ctx: IBContext) {
   const domRoot = ctx.domRoot;
 
   let clearCtxFocusedHandlers: (() => void) | undefined;
+  let clearingSelectionTimer: any;
 
   const globalPointerDown = (ev: PointerEvent) => {
+    if (clearingSelectionTimer) {
+      clearTimeout(clearingSelectionTimer);
+      clearingSelectionTimer = null;
+    }
+
     let target: IBElement | undefined;
     ev.composedPath().some(it => !!(target = ctx.dom2el.get(it as HTMLElement)));
 
-    const block = target?.is === "block" ? target : target?.parent;
-    const slot = target?.is === "slot" ? target : target?.parent;
-    const multipleSelectType = !target ? "none" : normalizeMultipleSelectType(ev);
+    if (!target) {
+      // click happens outside the context -- we shall clear the selection, but not immediately
+      //
+      // considering this situation: there is a toolbar above the context of blocks.
+      // user selects some blocks, then click a button of the toolbar, which is not inside the context.
+      // the button will fail to get the selection, if we clear the selection immediately in this `pointerdown` listener
+      //
+      //
+
+      if (!ctx.options.retainSelection) {
+        const removeTempListeners = addGlobalListener(() => {
+          removeTempListeners();
+
+          // UX secret: "click" has 300ms delay after pointerup event
+          clearingSelectionTimer = setTimeout(() => ctx.clearSelection(), 310);
+        }, ["pointerup", "pointercancel"]);
+      }
+
+      return;
+    }
+
+    const block = target.is === "block" ? target : target.parent;
+    const slot = target.is === "slot" ? target : target.parent;
+    const multipleSelectType = normalizeMultipleSelectType(ev);
 
     const selectionChanges = updateSelection(
       ctx,
@@ -38,13 +64,8 @@ export function setupInteractionSelectFocus(ctx: IBContext) {
 
     // UX secret: disable context menu and selection, if modifier key pressed
     if (multipleSelectType !== "none") {
-      document.addEventListener("contextmenu", preventDefault, true);
-      document.addEventListener("selectstart", preventDefault, true);
-
-      setTimeout(() => {
-        document.removeEventListener("contextmenu", preventDefault, true);
-        document.removeEventListener("selectstart", preventDefault, true);
-      }, 100);
+      const clearBlocker = addGlobalListener(e => e.preventDefault(), ["contextmenu", "selectstart"]);
+      setTimeout(clearBlocker, 100);
     }
   };
 
@@ -97,5 +118,17 @@ export function setupInteractionSelectFocus(ctx: IBContext) {
     });
     ctx.hooks.focus.call(ctx, dispose.tap);
     clearCtxFocusedHandlers = dispose.call;
+  }
+
+  function addGlobalListener(listener: EventListener, events: string | string[]) {
+    const evtIds = typeof events === "string" ? [events] : events.slice(0);
+
+    const clear = () => {
+      for (const ev of evtIds) domRoot.removeEventListener(ev, listener, true);
+      evtIds.splice(0);
+    };
+
+    for (const ev of evtIds) domRoot.addEventListener(ev, listener, true);
+    return clear;
   }
 }

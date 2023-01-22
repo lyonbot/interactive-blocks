@@ -194,7 +194,7 @@ blockContext.on("blur", () => {
 });
 ```
 
-- **activeElementChanged** `(ctx: BlockContext)`
+- **selectionChange** `(ctx: BlockContext)`
 - **focus** `(ctx: BlockContext)`
 - **blur** `(ctx: BlockContext)`
 - **paste** `(action: CBPasteAction)`

@@ -111,6 +111,13 @@ export class IBContext extends TypedEmitter<IBContextEvents> {
     return !!emitSelectionChangeEvents(this, getChanges());
   }
 
+  clearSelection() {
+    const getChanges = startDiffSelection(this);
+    this.selectedSlot = null;
+    this.selectedBlocks.clear();
+    return !!emitSelectionChangeEvents(this, getChanges());
+  }
+
   /**
    * remove selected blocks
    */
