@@ -16,6 +16,7 @@
     "build": "tsc",
     "dev": "tsc -w",
     "start": "run-p dev start:example",
+    "prepare-dev": "[ -d dist ] || npm run build",
     "start:example": "cd ../example-react-simple && npm start"
   },
   "dependencies": {
